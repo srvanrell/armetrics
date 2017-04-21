@@ -18,21 +18,20 @@ def frames2segments(y_true, y_pred):
     :param y_pred: array_like
     prediction or classifier output
     
-    :return: array_like, 2 columns
-    start- and end-indexes of segments.
-    first column corresponds to starts, and second column to ends
+    :return: tuple (3 columns), 
+    (array_like) first column corresponds to starts, 
+    (array_like) second column corresponds to ends,
+    (list) third column corresponds to basic labels (TP, TN, FP, FN)
     """
-    # start - and end - indexes
-    # of
-    # segments.That is,.
-
-    y_true_breaks = np.flatnonzero(np.diff(y_true)) + 1  # detect changes in y_true
-    y_pred_breaks = np.flatnonzero(np.diff(y_pred)) + 1  # detect changes in y_pred
-    seg_breaks = np.union1d(y_true_breaks, y_pred_breaks)  # combine both changes
+    y_true_breaks = np.flatnonzero(np.diff(y_true)) + 1  # locate changes in y_true
+    y_pred_breaks = np.flatnonzero(np.diff(y_pred)) + 1  # locate changes in y_pred
+    seg_breaks = np.union1d(y_true_breaks, y_pred_breaks)  # define segment breaks
     seg_starts = np.append([0], seg_breaks)  # add 0 as the first start
     seg_ends = np.append(seg_breaks, [-1])  # append -1 as the last end
+    # Compare segments at their first element to get corresponding labels
+    seg_labels = [label_segment(y_true[i], y_pred[i]) for i in seg_starts]
 
-    return zip(seg_starts, seg_ends)
+    return zip(seg_starts, seg_ends, seg_labels)
 
 
 def label_segment(y_true_seg, y_pred_seg):
@@ -54,6 +53,5 @@ def label_segment(y_true_seg, y_pred_seg):
     else:
         return "TN"
 
-
-for start, end in frames2segments(ground, output):
-    print(start, end)
+for start, end, label in frames2segments(ground, output):
+    print(start, end, label)
