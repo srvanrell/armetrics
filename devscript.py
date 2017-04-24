@@ -1,7 +1,7 @@
 import numpy as np
 
 ground = np.array([0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0])
-output = np.array([0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+output1 = np.array([1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0])
 
 
 def frames2segments(y_true, y_pred, advanced_labels=True):
@@ -10,7 +10,7 @@ def frames2segments(y_true, y_pred, advanced_labels=True):
     
     Segments are derived by comparing y_true with y_pred:
     any change in either y_pred or y_true marks a segment boundary.
-    First-segment start-index is 0 and last-segment end-index is -1 (the pythonic way). 
+    First-segment start-index is 0 and last-segment end-index is len(y_true). 
       
     :param y_true: array_like
         ground truth
@@ -31,7 +31,7 @@ def frames2segments(y_true, y_pred, advanced_labels=True):
     y_pred_breaks = np.flatnonzero(np.diff(y_pred)) + 1  # locate changes in y_pred
     seg_breaks = np.union1d(y_true_breaks, y_pred_breaks)  # define segment breaks
     seg_starts = np.append([0], seg_breaks)  # add 0 as the first start
-    seg_ends = np.append(seg_breaks, [-1])  # append -1 as the last end
+    seg_ends = np.append(seg_breaks, [len(y_true)])  # append len(ytrue) as the last end
     # Compare segments at their first element to get corresponding labels
     seg_basic_labels = [segment_basic_score(y_true[i], y_pred[i]) for i in seg_starts]
     if advanced_labels:
@@ -54,7 +54,7 @@ def segment_basic_score(y_true_seg, y_pred_seg):
     true_vs_pred = {(True, True): "TP",
                     (True, False): "FN",
                     (False, True): "FP",
-                    (False, False): "FN"}
+                    (False, False): "TN"}
 
     return true_vs_pred[(y_true_seg, y_pred_seg)]
 
@@ -77,8 +77,6 @@ def segment_score(basic_scored_segments):
     """
 
     output = []
-    # FIXME it consider that there are more than one segment
-    # this may not be true
 
     # First segment relabel
     aux = ''.join(basic_scored_segments[:2])
@@ -129,7 +127,22 @@ def segment_score(basic_scored_segments):
         elif aux in ["TPFN"]:
             output.append("Ua")  # ending Underfill
 
+    # TODO should TN be assigned to C or to ""
     return output
 
-for start, end, label in frames2segments(ground, output):
+
+def labeled_segments2labeled_frames(labeled_segments):
+    output = []
+    for start, end, label in labeled_segments:
+        print(start, end, label)
+        for i in range(start, end):
+            output.append(label)
+    return output
+
+for start, end, label in frames2segments(ground, output1):
     print(start, end, label)
+
+
+labeled = frames2segments(ground, output1)
+a = labeled_segments2labeled_frames(labeled)
+print(a, len(a), len(ground))
