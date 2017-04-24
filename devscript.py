@@ -51,15 +51,12 @@ def segment_basic_score(y_true_seg, y_pred_seg):
     :return: label that indicates True Positive, True Negative, False Positive or False Negative.
     Possible outcomes: "TP", "TN", "FP", or "FN".
     """
-    # FIXME this should be beautified :/
-    if y_true_seg and y_pred_seg:
-        return "TP"
-    elif y_true_seg and not y_pred_seg:
-        return "FN"
-    elif not y_true_seg and y_pred_seg:
-        return "FP"
-    else:
-        return "TN"
+    true_vs_pred = {(True, True): "TP",
+                    (True, False): "FN",
+                    (False, True): "FP",
+                    (False, False): "FN"}
+
+    return true_vs_pred[(y_true_seg, y_pred_seg)]
 
 
 def segment_score(basic_scored_segments):
