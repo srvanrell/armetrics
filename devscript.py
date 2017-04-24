@@ -4,7 +4,7 @@ ground = np.array([0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0])
 output = np.array([0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0])
 
 
-def frames2segments(y_true, y_pred):
+def frames2segments(y_true, y_pred, advanced_labels=True):
     """
     Compute segment boundaries and compare y_true with y_pred.
     
@@ -13,15 +13,19 @@ def frames2segments(y_true, y_pred):
     First-segment start-index is 0 and last-segment end-index is -1 (the pythonic way). 
       
     :param y_true: array_like
-    ground truth
+        ground truth
     
     :param y_pred: array_like
-    prediction or classifier output
+        prediction or classifier output
+
+    :param advanced_labels: (Default True)
+        Defines what kind of labels to return
     
     :return: tuple (3 columns), 
     (array_like) first column corresponds to starts, 
     (array_like) second column corresponds to ends,
     (list) third column corresponds to basic labels (TP, TN, FP, FN)
+    or advanced labels (C, I, D, M, F, Oa, Oz, Ua, Uz)
     """
     y_true_breaks = np.flatnonzero(np.diff(y_true)) + 1  # locate changes in y_true
     y_pred_breaks = np.flatnonzero(np.diff(y_pred)) + 1  # locate changes in y_pred
@@ -30,7 +34,10 @@ def frames2segments(y_true, y_pred):
     seg_ends = np.append(seg_breaks, [-1])  # append -1 as the last end
     # Compare segments at their first element to get corresponding labels
     seg_basic_labels = [segment_basic_score(y_true[i], y_pred[i]) for i in seg_starts]
-    seg_labels = segment_score(seg_basic_labels)
+    if advanced_labels:
+        seg_labels = segment_score(seg_basic_labels)
+    else:
+        seg_labels = seg_basic_labels
 
     return zip(seg_starts, seg_ends, seg_labels)
 
