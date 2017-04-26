@@ -37,7 +37,7 @@ def frames2segments(y_true, y_pred, advanced_labels=True):
     else:
         seg_labels = seg_basic_labels
 
-    return zip(seg_starts, seg_ends, seg_labels)
+    return [*zip(seg_starts, seg_ends, seg_labels)]
 
 
 def segment_basic_score(y_true_seg, y_pred_seg):
@@ -168,6 +168,50 @@ def events2frames(event_list, end=None):
     return np.array(frames, dtype='int64')
 
 
-def labeled_segment2labeled_events(labeled_segments, events):
-    return None
+def labeled_segments2labeled_events(labeled_segments, true_events, pred_events):
+    labels_true_ev = []
+    labels_pred_ev = []
+
+    # True events labeling, first pass (using labeled_segments)
+    for start_ev, end_ev in true_events:
+        aux_lab = ""
+        for start_seg, end_seg, lab_seg in labeled_segments:
+            if start_ev <= start_seg <= end_ev and lab_seg not in aux_lab:
+                # In the first pass, D and F segments are assigned to true events
+                if lab_seg in ["D", "F"]:
+                    aux_lab += lab_seg
+        labels_true_ev.append([start_ev, end_ev, aux_lab])
+
+    # Pred events labeling, first pass (using labeled_segments)
+    for start_ev, end_ev in pred_events:
+        aux_lab = ""
+        for start_seg, end_seg, lab_seg in labeled_segments:
+            if start_ev <= start_seg <= end_ev and lab_seg not in aux_lab:
+                # In the first pass, I and M segments are assigned to pred events
+                if lab_seg in ["I", "M"]:
+                    aux_lab += lab_seg
+        labels_pred_ev.append([start_ev, end_ev, aux_lab])
+
+    # True events labeling, second pass (using labels of prediction)
+    for i, true_ev in enumerate(labels_true_ev):
+        start_true_ev, end_true_ev, lab_true_ev = labels_true_ev[i]
+        for start_pred_ev, end_pred_ev, lab_pred_ev in labels_pred_ev:
+            if start_pred_ev <= start_true_ev <= end_pred_ev:
+                if lab_pred_ev in ["M"]:
+                    labels_true_ev[i][2] += "M"
+
+    # Pred events labeling, second pass (using labels of ground truth)
+    for i, pred_ev in enumerate(labels_pred_ev):
+        start_pred_ev, end_pred_ev, lab_pred_ev = labels_pred_ev[i]
+        for start_true_ev, end_true_ev, lab_true_ev in labels_true_ev:
+            if start_true_ev <= start_pred_ev <= end_true_ev:
+                if lab_true_ev in ["F"]:
+                    labels_pred_ev[i][2] += "F"
+
+
+    # if "C" in aux_lab and ('F' in aux_lab or 'M' in aux_lab):
+    #     # If an event was merged or fragmented, then it is not correct
+    #     aux_lab = aux_lab.replace("C", "")
+
+    return labels_true_ev, labels_pred_ev
 
