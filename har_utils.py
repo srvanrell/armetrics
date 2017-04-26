@@ -162,7 +162,7 @@ def events2frames(event_list, end=None):
     frames = []
     for start_e, end_e in event_list:
         frames += [0] * (start_e - len(frames))
-        frames += [1] * (end_e - start_e + 1)
+        frames += [1] * (end_e - start_e)
     if end:
         frames += [0] * (end - len(frames) + 1)
     return np.array(frames, dtype='int64')
@@ -197,7 +197,7 @@ def labeled_segments2labeled_events(labeled_segments, true_events, pred_events):
         start_true_ev, end_true_ev, lab_true_ev = labels_true_ev[i]
         for start_pred_ev, end_pred_ev, lab_pred_ev in labels_pred_ev:
             if start_pred_ev <= start_true_ev <= end_pred_ev:
-                if lab_pred_ev in ["M"]:
+                if lab_pred_ev in ["M", "MF", "FM"]:
                     labels_true_ev[i][2] += "M"
 
     # Pred events labeling, second pass (using labels of ground truth)
@@ -205,13 +205,17 @@ def labeled_segments2labeled_events(labeled_segments, true_events, pred_events):
         start_pred_ev, end_pred_ev, lab_pred_ev = labels_pred_ev[i]
         for start_true_ev, end_true_ev, lab_true_ev in labels_true_ev:
             if start_true_ev <= start_pred_ev <= end_true_ev:
-                if lab_true_ev in ["F"]:
+                if lab_true_ev in ["F", "FM", "MF"]:
                     labels_pred_ev[i][2] += "F"
 
+    # FIXME some labels may be repeated or unordered
 
-    # if "C" in aux_lab and ('F' in aux_lab or 'M' in aux_lab):
-    #     # If an event was merged or fragmented, then it is not correct
-    #     aux_lab = aux_lab.replace("C", "")
+    for i in range(len(labels_pred_ev)):
+        if labels_pred_ev[i][2] == "":
+            labels_pred_ev[i][2] = "C"
+    for i in range(len(labels_true_ev)):
+        if labels_true_ev[i][2] == "":
+            labels_true_ev[i][2] = "C"
 
     return labels_true_ev, labels_pred_ev
 
