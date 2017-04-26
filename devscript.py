@@ -31,7 +31,7 @@ def frames2segments(y_true, y_pred, advanced_labels=True):
     y_pred_breaks = np.flatnonzero(np.diff(y_pred)) + 1  # locate changes in y_pred
     seg_breaks = np.union1d(y_true_breaks, y_pred_breaks)  # define segment breaks
     seg_starts = np.append([0], seg_breaks)  # add 0 as the first start
-    seg_ends = np.append(seg_breaks, [len(y_true)])  # append len(ytrue) as the last end
+    seg_ends = np.append(seg_breaks, [len(y_true)])  # append len(y_true) as the last end
     # Compare segments at their first element to get corresponding labels
     seg_basic_labels = [segment_basic_score(y_true[i], y_pred[i]) for i in seg_starts]
     if advanced_labels:
@@ -63,6 +63,7 @@ def segment_score(basic_scored_segments):
     """
     Transform basic labels "TP", "TN", "FN", "FP" to:
     Correct (C)
+    Correct Null ("")
     Insertion (I)
     Merge (M)
     Overfill (O). starting (Oa), ending (Oz)
@@ -80,8 +81,10 @@ def segment_score(basic_scored_segments):
 
     # First segment relabel
     aux = ''.join(basic_scored_segments[:2])
-    if basic_scored_segments[0] in ["TP", "TN"]:
+    if basic_scored_segments[0] in ["TP"]:
         output.append("C")  # Correct
+    elif basic_scored_segments[0] in ["TN"]:
+        output.append("")  # Correct null
     elif aux in ["FPTN", "FPFN"]:
         output.append("I")  # Insertion
     elif aux in ["FNTN", "FNFP"]:
@@ -94,8 +97,10 @@ def segment_score(basic_scored_segments):
     # Middle segment relabel
     for i in range(1, len(basic_scored_segments)-1):
         aux = ''.join(basic_scored_segments[i-1:i+2])
-        if basic_scored_segments[i] in ["TP", "TN"]:
+        if basic_scored_segments[i] in ["TP"]:
             output.append("C")  # Correct
+        elif basic_scored_segments[i] in ["TN"]:
+            output.append("")  # Correct null
         elif aux in ["TPFPTP"]:
             output.append("M")  # Merge
         elif aux in ["TPFNTP"]:
@@ -116,8 +121,10 @@ def segment_score(basic_scored_segments):
     if len(basic_scored_segments) > 1:
         # Last segment relabel
         aux = ''.join(basic_scored_segments[-2:])
-        if basic_scored_segments[-1] in ["TP", "TN"]:
+        if basic_scored_segments[-1] in ["TP"]:
             output.append("C")  # Correct
+        elif basic_scored_segments[-1] in ["TN"]:
+            output.append("")  # Correct null
         elif aux in ["TNFP", "FNFP"]:
             output.append("I")  # Insertion
         elif aux in ["TNFN", "FPFN"]:
@@ -127,14 +134,12 @@ def segment_score(basic_scored_segments):
         elif aux in ["TPFN"]:
             output.append("Ua")  # ending Underfill
 
-    # TODO should TN be assigned to C or to ""
     return output
 
 
 def labeled_segments2labeled_frames(labeled_segments):
     output = []
     for start, end, label in labeled_segments:
-        print(start, end, label)
         for i in range(start, end):
             output.append(label)
     return output
