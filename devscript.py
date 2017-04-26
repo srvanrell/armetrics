@@ -1,9 +1,7 @@
 import numpy as np
 
-ground = np.array([0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0])
-output1 = np.array([1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0])
 
-
+# TODO the shorter input should be pad with zeros
 def frames2segments(y_true, y_pred, advanced_labels=True):
     """
     Compute segment boundaries and compare y_true with y_pred.
@@ -144,10 +142,54 @@ def labeled_segments2labeled_frames(labeled_segments):
             output.append(label)
     return output
 
+
+def events2frames(event_list, end=None):
+    """
+    Translate an event list into an array of binary frames.
+    
+    Event list comprising start and end indexes of events (must be positive).
+     For example: [[3, 5], [8, 10]]
+    
+    Returns an np.array corresponding to frames.
+     Frames that correspond to an event ar marked with 1.
+     Frames that not correspond to an event ar marked with 0.
+    
+    :param end: (None by default)
+     Extend the frame array to given end
+    :param event_list:
+    :return: frames:   
+    """
+    frames = []
+    for start_e, end_e in event_list:
+        frames += [0] * (start_e - len(frames))
+        frames += [1] * (end_e - start_e + 1)
+    if end:
+        frames += [0] * (end - len(frames) + 1)
+    return np.array(frames, dtype='int64')
+
+
+def labeled_segment2labeled_events(labeled_segments, events):
+    return None
+
+
+# ground = np.array([0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0])
+ground = events2frames([[2, 4],
+                        [7, 8]],
+                       end=10)
+# output1 = np.array([1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0])
+output1 = events2frames([[0, 0],
+                         [3, 3],
+                         [15, 17]],
+                        end=10)
+
+print("ground:", ground)
+print("sysout:", output1)
+
 for start, end, label in frames2segments(ground, output1):
     print(start, end, label)
 
-
 labeled = frames2segments(ground, output1)
 a = labeled_segments2labeled_frames(labeled)
-print(a, len(a), len(ground))
+print(a, len(a), len(ground), labeled)
+
+
