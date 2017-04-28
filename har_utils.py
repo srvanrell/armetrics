@@ -1,5 +1,5 @@
 import numpy as np
-from models import Event
+from models import Event, Segment
 
 
 # TODO the shorter input should be pad with zeros
@@ -173,21 +173,23 @@ def labeled_segments2labeled_events(labeled_segments, true_events, pred_events):
     labeled_true_ev = [Event(start, end) for start, end in true_events]
     labeled_pred_ev = [Event(start, end) for start, end in pred_events]
 
+    scored_segments = [Segment(start, end, label) for start, end, label in labeled_segments]
+
     # True events labeling, first pass (using labeled_segments)
     for true_ev in labeled_true_ev:
-        for start_seg, end_seg, lab_seg in labeled_segments:
-            if true_ev.start <= start_seg <= true_ev.end:
+        for seg in scored_segments:
+            if true_ev.start <= seg.start <= true_ev.end:
                 # In the first pass, D and F segments are assigned to true events
-                if lab_seg in ["D", "F"]:
-                    true_ev.add_label(lab_seg)
+                if seg.label in ["D", "F"]:
+                    true_ev.add_label(seg.label)
 
     # Pred events labeling, first pass (using labeled_segments)
     for pred_ev in labeled_pred_ev:
-        for start_seg, end_seg, lab_seg in labeled_segments:
-            if pred_ev.start <= start_seg <= pred_ev.end:
+        for seg in scored_segments:
+            if pred_ev.start <= seg.start <= pred_ev.end:
                 # In the first pass, I and M segments are assigned to pred events
-                if lab_seg in ["I", "M"]:
-                    pred_ev.add_label(lab_seg)
+                if seg.label in ["I", "M"]:
+                    pred_ev.add_label(seg.label)
 
     # True events labeling, second pass (using labels of prediction)
     for true_ev in labeled_true_ev:
