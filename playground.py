@@ -8,8 +8,9 @@ ground_ev = [[1, 6],
              [18, 19],
              [20, 21],
              [22, 24],
-             [25, 30]]
-ground = events2frames(ground_ev, end=31)
+             [25, 30]
+             ]
+ground = events2frames(ground_ev, end=40)
 
 output1_ev = [[1, 2],
               [3, 4],
@@ -20,8 +21,9 @@ output1_ev = [[1, 2],
               [18, 21],
               [22, 26],
               [27, 28],
-              [29, 30]]
-output1 = events2frames(output1_ev, end=31)
+              [29, 30]
+              ]
+output1 = events2frames(output1_ev, end=40)
 
 print("ground:", ground)
 print("sysout:", output1)

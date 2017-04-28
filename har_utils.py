@@ -1,5 +1,5 @@
 import numpy as np
-
+from models import Event
 
 # TODO the shorter input should be pad with zeros
 def frames2segments(y_true, y_pred, advanced_labels=True):
@@ -169,53 +169,47 @@ def events2frames(event_list, end=None):
 
 
 def labeled_segments2labeled_events(labeled_segments, true_events, pred_events):
-    labels_true_ev = []
-    labels_pred_ev = []
+    # Create list of true and predicted events with empty labels
+    labeled_true_ev = [Event(start, end) for start, end in true_events]
+    labeled_pred_ev = [Event(start, end) for start, end in pred_events]
 
     # True events labeling, first pass (using labeled_segments)
-    for start_ev, end_ev in true_events:
-        aux_lab = ""
+    for true_ev in labeled_true_ev:
         for start_seg, end_seg, lab_seg in labeled_segments:
-            if start_ev <= start_seg <= end_ev and lab_seg not in aux_lab:
+            if true_ev.start <= start_seg <= true_ev.end:
                 # In the first pass, D and F segments are assigned to true events
                 if lab_seg in ["D", "F"]:
-                    aux_lab += lab_seg
-        labels_true_ev.append([start_ev, end_ev, aux_lab])
+                    true_ev.add_label(lab_seg)
 
     # Pred events labeling, first pass (using labeled_segments)
-    for start_ev, end_ev in pred_events:
-        aux_lab = ""
+    for pred_ev in labeled_pred_ev:
         for start_seg, end_seg, lab_seg in labeled_segments:
-            if start_ev <= start_seg <= end_ev and lab_seg not in aux_lab:
+            if pred_ev.start <= start_seg <= pred_ev.end:
                 # In the first pass, I and M segments are assigned to pred events
                 if lab_seg in ["I", "M"]:
-                    aux_lab += lab_seg
-        labels_pred_ev.append([start_ev, end_ev, aux_lab])
+                    pred_ev.add_label(lab_seg)
 
     # True events labeling, second pass (using labels of prediction)
-    for i, true_ev in enumerate(labels_true_ev):
-        start_true_ev, end_true_ev, lab_true_ev = labels_true_ev[i]
-        for start_pred_ev, end_pred_ev, lab_pred_ev in labels_pred_ev:
-            if start_pred_ev <= start_true_ev <= end_pred_ev:
-                if lab_pred_ev in ["M", "MF", "FM"]:
-                    labels_true_ev[i][2] += "M"
+    for true_ev in labeled_true_ev:
+        for pred_ev in labeled_pred_ev:
+            if pred_ev.overlap(true_ev):
+                if pred_ev.label in ["M", "FM"]:
+                    true_ev.add_label("M")
 
     # Pred events labeling, second pass (using labels of ground truth)
-    for i, pred_ev in enumerate(labels_pred_ev):
-        start_pred_ev, end_pred_ev, lab_pred_ev = labels_pred_ev[i]
-        for start_true_ev, end_true_ev, lab_true_ev in labels_true_ev:
-            if start_true_ev <= start_pred_ev <= end_true_ev:
-                if lab_true_ev in ["F", "FM", "MF"]:
-                    labels_pred_ev[i][2] += "F"
+    for pred_ev in labeled_pred_ev:
+        for true_ev in labeled_true_ev:
+            if true_ev.overlap(pred_ev):
+                if true_ev.label in ["F", "FM"]:
+                    pred_ev.add_label("F")
 
-    # FIXME some labels may be repeated or unordered
+    # If no label was assigned so far, then it is a correct detected event
+    for true_ev in labeled_true_ev:
+        if true_ev.label == "":
+            true_ev.add_label("C")
 
-    for i in range(len(labels_pred_ev)):
-        if labels_pred_ev[i][2] == "":
-            labels_pred_ev[i][2] = "C"
-    for i in range(len(labels_true_ev)):
-        if labels_true_ev[i][2] == "":
-            labels_true_ev[i][2] = "C"
+    for pred_ev in labeled_pred_ev:
+        if pred_ev.label == "":
+            pred_ev.add_label("C")
 
-    return labels_true_ev, labels_pred_ev
-
+    return labeled_true_ev, labeled_pred_ev
