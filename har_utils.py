@@ -1,6 +1,7 @@
 import numpy as np
 from models import Event
 
+
 # TODO the shorter input should be pad with zeros
 def frames2segments(y_true, y_pred, advanced_labels=True):
     """
@@ -93,8 +94,8 @@ def segment_score(basic_scored_segments):
         output.append("Ua")  # starting Underfill
 
     # Middle segment relabel
-    for i in range(1, len(basic_scored_segments)-1):
-        aux = ''.join(basic_scored_segments[i-1:i+2])
+    for i in range(1, len(basic_scored_segments) - 1):
+        aux = ''.join(basic_scored_segments[i - 1:i + 2])
         if basic_scored_segments[i] in ["TP"]:
             output.append("C")  # Correct
         elif basic_scored_segments[i] in ["TN"]:
@@ -138,12 +139,11 @@ def segment_score(basic_scored_segments):
 def labeled_segments2labeled_frames(labeled_segments):
     output = []
     for start, end, label in labeled_segments:
-        for i in range(start, end):
-            output.append(label)
+        output += [label] * (end - start)
     return output
 
 
-def events2frames(event_list, end=None):
+def events2frames(event_list, last_index=None):
     """
     Translate an event list into an array of binary frames.
     
@@ -154,7 +154,7 @@ def events2frames(event_list, end=None):
      Frames that correspond to an event ar marked with 1.
      Frames that not correspond to an event ar marked with 0.
     
-    :param end: (None by default)
+    :param last_index: (None by default)
      Extend the frame array to given end
     :param event_list:
     :return: frames:   
@@ -163,8 +163,8 @@ def events2frames(event_list, end=None):
     for start_e, end_e in event_list:
         frames += [0] * (start_e - len(frames))
         frames += [1] * (end_e - start_e)
-    if end:
-        frames += [0] * (end - len(frames) + 1)
+    if last_index:
+        frames += [0] * (last_index - len(frames) + 1)
     return np.array(frames, dtype='int64')
 
 
