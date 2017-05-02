@@ -31,14 +31,14 @@ def frames2segments(y_true, y_pred, advanced_labels=True):
     seg_breaks = np.union1d(y_true_breaks, y_pred_breaks)  # define segment breaks
     seg_starts = np.append([0], seg_breaks)  # add 0 as the first start
     seg_ends = np.append(seg_breaks, [len(y_true)])  # append len(y_true) as the last end
+
     # Compare segments at their first element to get corresponding labels
     seg_basic_labels = [segment_basic_score(y_true[i], y_pred[i]) for i in seg_starts]
+    segments = [Segment(start, end, label) for start, end, label in zip(seg_starts, seg_ends, seg_basic_labels)]
     if advanced_labels:
-        seg_labels = segment_score(seg_basic_labels)
-    else:
-        seg_labels = seg_basic_labels
+        segments = score_segments(segments)
 
-    return [*zip(seg_starts, seg_ends, seg_labels)]
+    return segments
 
 
 def segment_basic_score(y_true_seg, y_pred_seg):
@@ -58,7 +58,7 @@ def segment_basic_score(y_true_seg, y_pred_seg):
     return true_vs_pred[(y_true_seg, y_pred_seg)]
 
 
-def segment_score(basic_scored_segments):
+def score_segments(basic_scored_segments):
     """
     Transform basic labels "TP", "TN", "FN", "FP" to:
     Correct (C)
@@ -76,70 +76,70 @@ def segment_score(basic_scored_segments):
     List of advanced scores assigned to segments
     """
 
-    output = []
+    segments = [Segment(seg.start, seg.end) for seg in basic_scored_segments]
 
     # First segment relabel
-    aux = ''.join(basic_scored_segments[:2])
-    if basic_scored_segments[0] in ["TP"]:
-        output.append("C")  # Correct
-    elif basic_scored_segments[0] in ["TN"]:
-        output.append("")  # Correct null
+    aux = ''.join(seg.label for seg in basic_scored_segments[:2])
+    if basic_scored_segments[0].label in ["TP"]:
+        segments[0].label = "C"  # Correct
+    elif basic_scored_segments[0].label in ["TN"]:
+        segments[0].label = ""  # Correct null
     elif aux in ["FPTN", "FPFN"]:
-        output.append("I")  # Insertion
+        segments[0].label = "I"  # Insertion
     elif aux in ["FNTN", "FNFP"]:
-        output.append("D")  # Deletion
+        segments[0].label = "D"  # Deletion
     elif aux in ["FPTP"]:
-        output.append("Oa")  # starting Overfill
+        segments[0].label = "Oa"  # starting Overfill
     elif aux in ["FNTP"]:
-        output.append("Ua")  # starting Underfill
+        segments[0].label = "Ua"  # starting Underfill
 
     # Middle segment relabel
     for i in range(1, len(basic_scored_segments) - 1):
-        aux = ''.join(basic_scored_segments[i - 1:i + 2])
-        if basic_scored_segments[i] in ["TP"]:
-            output.append("C")  # Correct
-        elif basic_scored_segments[i] in ["TN"]:
-            output.append("")  # Correct null
+        aux = ''.join(seg.label for seg in basic_scored_segments[i - 1:i + 2])
+        if basic_scored_segments[i].label in ["TP"]:
+            segments[0].label = "C"  # Correct
+        elif basic_scored_segments[i].label in ["TN"]:
+            segments[0].label = ""  # Correct null
         elif aux in ["TPFPTP"]:
-            output.append("M")  # Merge
+            segments[0].label = "M"  # Merge
         elif aux in ["TPFNTP"]:
-            output.append("F")  # Fragmentation
+            segments[0].label = "F"  # Fragmentation
         elif aux in ["TNFPTN", "FNFPTN", "TNFPFN", "FNFPFN"]:
-            output.append("I")  # Insertion
+            segments[0].label = "I"  # Insertion
         elif aux in ["TNFNTN", "FPFNTN", "TNFNFP", "FPFNFP"]:
-            output.append("D")  # Deletion
+            segments[0].label = "D"  # Deletion
         elif aux in ["TNFPTP", "FNFPTP"]:
-            output.append("Oa")  # starting Overfill
+            segments[0].label = "Oa"  # starting Overfill
         elif aux in ["TPFPTN", "TPFPFN"]:
-            output.append("Oz")  # ending Overfill
+            segments[0].label = "Oz"  # ending Overfill
         elif aux in ["TNFNTP", "FPFNTP"]:
-            output.append("Ua")  # starting Underfill
+            segments[0].label = "Ua"  # starting Underfill
         elif aux in ["TPFNTN", "TPFNFP"]:
-            output.append("Uz")  # ending Underfill
+            segments[0].label = "Uz"  # ending Underfill
 
     if len(basic_scored_segments) > 1:
         # Last segment relabel
-        aux = ''.join(basic_scored_segments[-2:])
-        if basic_scored_segments[-1] in ["TP"]:
-            output.append("C")  # Correct
-        elif basic_scored_segments[-1] in ["TN"]:
-            output.append("")  # Correct null
+        aux = ''.join(seg.label for seg in basic_scored_segments[-2:])
+        if basic_scored_segments[-1].label in ["TP"]:
+            segments[0].label = "C"  # Correct
+        elif basic_scored_segments[-1].label in ["TN"]:
+            segments[0].label = ""  # Correct null
         elif aux in ["TNFP", "FNFP"]:
-            output.append("I")  # Insertion
+            segments[0].label = "I"  # Insertion
         elif aux in ["TNFN", "FPFN"]:
-            output.append("D")  # Deletion
+            segments[0].label = "D"  # Deletion
         elif aux in ["TPFP"]:
-            output.append("Oa")  # ending Overfill
+            segments[0].label = "Oa"  # ending Overfill
         elif aux in ["TPFN"]:
-            output.append("Ua")  # ending Underfill
+            segments[0].label = "Ua"  # ending Underfill
 
-    return output
+    return segments
 
 
-def labeled_segments2labeled_frames(labeled_segments):
+def segments2frames(scored_segments):
     output = []
-    for start, end, label in labeled_segments:
-        output += [label] * (end - start)
+    for seg in scored_segments:
+        output += [seg.label] * (seg.end - seg.start)
     return output
 
 
@@ -168,12 +168,10 @@ def events2frames(event_list, last_index=None):
     return np.array(frames, dtype='int64')
 
 
-def labeled_segments2labeled_events(labeled_segments, true_events, pred_events):
+def score_events(scored_segments, true_events, pred_events):
     # Create list of true and predicted events with empty labels
     labeled_true_ev = [Event(start, end) for start, end in true_events]
     labeled_pred_ev = [Event(start, end) for start, end in pred_events]
-
-    scored_segments = [Segment(start, end, label) for start, end, label in labeled_segments]
 
     # True events labeling, first pass (using labeled_segments)
     for true_ev in labeled_true_ev:

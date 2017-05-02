@@ -28,15 +28,15 @@ output1 = events2frames(output1_ev, last_index=31)
 print("ground:", ground)
 print("sysout:", output1)
 
-labeled_seg = frames2segments(ground, output1)
-for start, end, label in labeled_seg:
-    print(start, end, label)
+scored_segments = frames2segments(ground, output1)
+for seg in scored_segments:
+    print(seg)
 
 # labeled = frames2segments(ground, output1)
 # a = labeled_segments2labeled_frames(labeled)
 # print(a, len(a), len(ground))
 
-for k in labeled_segments2labeled_events(labeled_seg, ground_ev, output1_ev):
+for k in score_events(scored_segments, ground_ev, output1_ev):
     print(k)
 # print(labeled_segments2labeled_events(labeled_seg, output1_ev))
 
