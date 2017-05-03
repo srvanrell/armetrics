@@ -41,6 +41,16 @@ def frames2segments(y_true, y_pred, advanced_labels=True):
     return segments
 
 
+def binarize_frames(labeled_frames, class_to_keep):
+    binarized = []
+    for frame in labeled_frames:
+        if frame == class_to_keep:
+            binarized.append(1)
+        else:
+            binarized.append(0)
+    return np.array(binarized, dtype='int64')
+
+
 def segment_basic_score(y_true_seg, y_pred_seg):
     """
     Compares y_true_seg with y_pred_seg and returns the corresponding label
