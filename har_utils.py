@@ -97,41 +97,41 @@ def score_segments(basic_scored_segments):
     for i in range(1, len(basic_scored_segments) - 1):
         aux = ''.join(seg.label for seg in basic_scored_segments[i - 1:i + 2])
         if basic_scored_segments[i].label in ["TP"]:
-            segments[0].label = "C"  # Correct
+            segments[i].label = "C"  # Correct
         elif basic_scored_segments[i].label in ["TN"]:
-            segments[0].label = ""  # Correct null
+            segments[i].label = ""  # Correct null
         elif aux in ["TPFPTP"]:
-            segments[0].label = "M"  # Merge
+            segments[i].label = "M"  # Merge
         elif aux in ["TPFNTP"]:
-            segments[0].label = "F"  # Fragmentation
+            segments[i].label = "F"  # Fragmentation
         elif aux in ["TNFPTN", "FNFPTN", "TNFPFN", "FNFPFN"]:
-            segments[0].label = "I"  # Insertion
+            segments[i].label = "I"  # Insertion
         elif aux in ["TNFNTN", "FPFNTN", "TNFNFP", "FPFNFP"]:
-            segments[0].label = "D"  # Deletion
+            segments[i].label = "D"  # Deletion
         elif aux in ["TNFPTP", "FNFPTP"]:
-            segments[0].label = "Oa"  # starting Overfill
+            segments[i].label = "Oa"  # starting Overfill
         elif aux in ["TPFPTN", "TPFPFN"]:
-            segments[0].label = "Oz"  # ending Overfill
+            segments[i].label = "Oz"  # ending Overfill
         elif aux in ["TNFNTP", "FPFNTP"]:
-            segments[0].label = "Ua"  # starting Underfill
+            segments[i].label = "Ua"  # starting Underfill
         elif aux in ["TPFNTN", "TPFNFP"]:
-            segments[0].label = "Uz"  # ending Underfill
+            segments[i].label = "Uz"  # ending Underfill
 
     if len(basic_scored_segments) > 1:
         # Last segment relabel
         aux = ''.join(seg.label for seg in basic_scored_segments[-2:])
         if basic_scored_segments[-1].label in ["TP"]:
-            segments[0].label = "C"  # Correct
+            segments[-1].label = "C"  # Correct
         elif basic_scored_segments[-1].label in ["TN"]:
-            segments[0].label = ""  # Correct null
+            segments[-1].label = ""  # Correct null
         elif aux in ["TNFP", "FNFP"]:
-            segments[0].label = "I"  # Insertion
+            segments[-1].label = "I"  # Insertion
         elif aux in ["TNFN", "FPFN"]:
-            segments[0].label = "D"  # Deletion
+            segments[-1].label = "D"  # Deletion
         elif aux in ["TPFP"]:
-            segments[0].label = "Oa"  # ending Overfill
+            segments[-1].label = "Oa"  # ending Overfill
         elif aux in ["TPFN"]:
-            segments[0].label = "Ua"  # ending Underfill
+            segments[-1].label = "Ua"  # ending Underfill
 
     return segments
 
@@ -170,11 +170,11 @@ def events2frames(event_list, last_index=None):
 
 def score_events(scored_segments, true_events, pred_events):
     # Create list of true and predicted events with empty labels
-    labeled_true_ev = [Event(start, end) for start, end in true_events]
-    labeled_pred_ev = [Event(start, end) for start, end in pred_events]
+    scored_true_evs = [Event(start, end) for start, end in true_events]
+    scored_pred_evs = [Event(start, end) for start, end in pred_events]
 
     # True events labeling, first pass (using labeled_segments)
-    for true_ev in labeled_true_ev:
+    for true_ev in scored_true_evs:
         for seg in scored_segments:
             if true_ev.start <= seg.start <= true_ev.end:
                 # In the first pass, D and F segments are assigned to true events
@@ -182,7 +182,7 @@ def score_events(scored_segments, true_events, pred_events):
                     true_ev.add_label(seg.label)
 
     # Pred events labeling, first pass (using labeled_segments)
-    for pred_ev in labeled_pred_ev:
+    for pred_ev in scored_pred_evs:
         for seg in scored_segments:
             if pred_ev.start <= seg.start <= pred_ev.end:
                 # In the first pass, I and M segments are assigned to pred events
@@ -190,26 +190,55 @@ def score_events(scored_segments, true_events, pred_events):
                     pred_ev.add_label(seg.label)
 
     # True events labeling, second pass (using labels of prediction)
-    for true_ev in labeled_true_ev:
-        for pred_ev in labeled_pred_ev:
+    for true_ev in scored_true_evs:
+        for pred_ev in scored_pred_evs:
             if pred_ev.overlap(true_ev):
                 if pred_ev.label in ["M", "FM"]:
                     true_ev.add_label("M")
 
     # Pred events labeling, second pass (using labels of ground truth)
-    for pred_ev in labeled_pred_ev:
-        for true_ev in labeled_true_ev:
+    for pred_ev in scored_pred_evs:
+        for true_ev in scored_true_evs:
             if true_ev.overlap(pred_ev):
                 if true_ev.label in ["F", "FM"]:
                     pred_ev.add_label("F")
 
     # If no label was assigned so far, then it is a correct detected event
-    for true_ev in labeled_true_ev:
+    for true_ev in scored_true_evs:
         if true_ev.label == "":
             true_ev.add_label("C")
 
-    for pred_ev in labeled_pred_ev:
+    for pred_ev in scored_pred_evs:
         if pred_ev.label == "":
             pred_ev.add_label("C")
 
-    return labeled_true_ev, labeled_pred_ev
+    return scored_true_evs, scored_pred_evs
+
+
+def events_summary(scored_true_events, scored_pred_events, normalize=True):
+    scored_true_events = [e.label for e in scored_true_events]
+    scored_pred_events = [e.label for e in scored_pred_events]
+
+    summary = {"C": scored_true_events.count("C"),     # Total correct events
+               # ground truth
+               "D": scored_true_events.count("D"),     # Total deleted events
+               "F": scored_true_events.count("F"),     # Total fragmented events
+               "FM": scored_true_events.count("FM"),   # Total fragmented and merged events
+               "M": scored_true_events.count("M"),     # Total merged events
+               # predicted output
+               "C'": scored_pred_events.count("C"),    # Total correct events (equivalent to C if not normalized)
+               "I'": scored_pred_events.count("I"),    # Total inserted events
+               "F'": scored_pred_events.count("F"),    # Total fragmenting events
+               "FM'": scored_pred_events.count("FM"),  # Total fragmenting and merging events
+               "M'": scored_pred_events.count("M")     # Total merging events
+               }
+
+    if normalize:
+        # Normalized true events metrics
+        for lab in ["C", "D", "F", "FM", "M"]:
+            summary[lab] /= len(scored_true_events)
+        # Normalized predicted events metrics
+        for lab in ["C'", "I'", "F'", "FM'", "M'"]:
+            summary[lab] /= len(scored_pred_events)
+
+    return summary
