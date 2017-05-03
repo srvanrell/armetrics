@@ -242,3 +242,30 @@ def events_summary(scored_true_events, scored_pred_events, normalize=True):
             summary[lab] /= len(scored_pred_events)
 
     return summary
+
+
+def frames_summary(scored_frames, normalize=True):
+
+    summary = {"tp": scored_frames.count("C"),    # Total correct frames (true positives)
+               "tn": scored_frames.count(""),     # Total correct frames (true negatives)
+               "d": scored_frames.count("D"),     # Total deleted frames
+               "f": scored_frames.count("F"),     # Total fragmented frames
+               "i": scored_frames.count("I"),     # Total inserted frames
+               "m": scored_frames.count("M"),     # Total merged frames
+               "ua": scored_frames.count("Ua"),   # Total starting underfill frames
+               "uz": scored_frames.count("Uz"),   # Total ending underfill frames
+               "oa": scored_frames.count("Oa"),   # Total starting overfill frames
+               "oz": scored_frames.count("Oz"),   # Total ending overfill frames
+               }
+
+    if normalize:
+        # Normalized positives frame metrics
+        total_positives = summary["tp"] + summary["d"] + summary["f"] + summary["ua"] + summary["uz"]
+        for lab in ["tp", "d", "f", "ua", "uz"]:
+            summary[lab] /= total_positives
+        # Normalized predicted events metrics
+        total_negatives = summary["tn"] + summary["i"] + summary["m"] + summary["oa"] + summary["oz"]
+        for lab in ["tn", "i", "m", "oa", "oz"]:
+            summary[lab] /= total_negatives
+
+    return summary
