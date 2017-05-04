@@ -77,15 +77,16 @@ print(acc_filename)
 print(labels)
 print(window_labels)
 print(acc.t.iloc[0], acc.t.iloc[-1])
-stay_true_bin = binarize_frames(window_labels, "stay")
-print(stay_true_bin)
+
+stay_true_bin = binarize_frames(window_labels, "walk")
 stay_true_evs = binframes2events(stay_true_bin)
-print("true ev", stay_true_evs)
 stay_pred_evs = [[3, 12],
                  [15, 21],
                  [30, 55],
                  [70, 111]]
-print("pred ev", stay_pred_evs)
 stay_pred_bin = events2frames(stay_pred_evs, length=len(stay_true_bin))
-get_scores(stay_true_bin, stay_pred_bin)
 
+print("true ev", stay_true_evs)
+print("pred ev", stay_pred_evs)
+
+get_scores(stay_true_bin, stay_pred_bin)
