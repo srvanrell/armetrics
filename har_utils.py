@@ -51,6 +51,15 @@ def binarize_frames(labeled_frames, class_to_keep):
     return np.array(binarized, dtype='int64')
 
 
+def binframes2events(bin_frames):
+    breaks = np.flatnonzero(np.diff(bin_frames)) + 1  # locate changes in bin_frames
+    starts = np.append([0], breaks)  # add 0 as the first start
+    ends = np.append(breaks, [len(bin_frames)])  # append len(bin_frame) as the last end
+    # Events are specified with one
+    events = [[f_start, f_end] for f_start, f_end in zip(starts, ends) if bin_frames[f_start]]
+    return events
+
+
 def segment_basic_score(y_true_seg, y_pred_seg):
     """
     Compares y_true_seg with y_pred_seg and returns the corresponding label
@@ -153,7 +162,7 @@ def segments2frames(scored_segments):
     return output
 
 
-def events2frames(event_list, last_index=None):
+def events2frames(event_list, length=None):
     """
     Translate an event list into an array of binary frames.
     
@@ -164,8 +173,8 @@ def events2frames(event_list, last_index=None):
      Frames that correspond to an event ar marked with 1.
      Frames that not correspond to an event ar marked with 0.
     
-    :param last_index: (None by default)
-     Extend the frame array to given end
+    :param length: (None by default)
+     Extend the frame array to given length
     :param event_list:
     :return: frames:   
     """
@@ -173,8 +182,8 @@ def events2frames(event_list, last_index=None):
     for start_e, end_e in event_list:
         frames += [0] * (start_e - len(frames))
         frames += [1] * (end_e - start_e)
-    if last_index:
-        frames += [0] * (last_index - len(frames) + 1)
+    if length:
+        frames += [0] * (length - len(frames))
     return np.array(frames, dtype='int64')
 
 
@@ -279,3 +288,16 @@ def frames_summary(scored_frames, normalize=True):
             summary[lab] /= total_negatives
 
     return summary
+
+
+def get_scores(y_true_bin, y_pred_bin):
+    y_true_evs = binframes2events(y_true_bin)
+    y_pred_evs = binframes2events(y_pred_bin)
+    scored_segments = frames2segments(y_true_bin, y_pred_bin)
+    scored_frames = segments2frames(scored_segments)
+    scored_true_events, scored_pred_events = score_events(scored_segments, y_true_evs, y_pred_evs)
+    print(scored_true_events)
+    print(scored_pred_events)
+
+    print(events_summary(scored_true_events, scored_pred_events))
+    print(frames_summary(scored_frames))

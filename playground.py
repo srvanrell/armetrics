@@ -10,7 +10,7 @@ ground_ev = [[1, 6],
              [22, 24],
              [25, 30]
              ]
-ground = events2frames(ground_ev, last_index=31)
+ground = events2frames(ground_ev, length=31)
 
 output1_ev = [[1, 2],
               [3, 4],
@@ -23,7 +23,7 @@ output1_ev = [[1, 2],
               [27, 28],
               [29, 30]
               ]
-output1 = events2frames(output1_ev, last_index=31)
+output1 = events2frames(output1_ev, length=31)
 
 print("ground:", ground)
 print("sysout:", output1)
@@ -33,10 +33,6 @@ for seg in scored_segments:
     print(seg)
 
 scored_frames = segments2frames(scored_segments)
-
-# labeled = frames2segments(ground, output1)
-# a = labeled_segments2labeled_frames(labeled)
-# print(a, len(a), len(ground))
 
 scored_true_events, scored_pred_events = score_events(scored_segments, ground_ev, output1_ev)
 print(scored_true_events)
@@ -81,4 +77,15 @@ print(acc_filename)
 print(labels)
 print(window_labels)
 print(acc.t.iloc[0], acc.t.iloc[-1])
-print(binarize_frames(window_labels, "stay"))
+stay_true_bin = binarize_frames(window_labels, "stay")
+print(stay_true_bin)
+stay_true_evs = binframes2events(stay_true_bin)
+print("true ev", stay_true_evs)
+stay_pred_evs = [[3, 12],
+                 [15, 21],
+                 [30, 55],
+                 [70, 111]]
+print("pred ev", stay_pred_evs)
+stay_pred_bin = events2frames(stay_pred_evs, length=len(stay_true_bin))
+get_scores(stay_true_bin, stay_pred_bin)
+
