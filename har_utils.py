@@ -255,10 +255,10 @@ def events_summary(scored_true_events, scored_pred_events, normalize=True):
     if normalize:
         # Normalized true events metrics
         for lab in ["C", "D", "F", "FM", "M"]:
-            summary[lab] /= len(scored_true_events)
+            summary[lab+"_rate"] = summary[lab] / max(1, len(scored_true_events))
         # Normalized predicted events metrics
         for lab in ["C'", "I'", "F'", "FM'", "M'"]:
-            summary[lab] /= len(scored_pred_events)
+            summary[lab+"_rate"] = summary[lab] / max(1, len(scored_pred_events))
 
     return summary
 
@@ -281,11 +281,11 @@ def frames_summary(scored_frames, normalize=True):
         # Normalized positives frame metrics
         total_positives = summary["tp"] + summary["d"] + summary["f"] + summary["ua"] + summary["uz"]
         for lab in ["tp", "d", "f", "ua", "uz"]:
-            summary[lab] /= total_positives
+            summary[lab+"_rate"] = summary[lab] / max(1, total_positives)
         # Normalized predicted events metrics
         total_negatives = summary["tn"] + summary["i"] + summary["m"] + summary["oa"] + summary["oz"]
         for lab in ["tn", "i", "m", "oa", "oz"]:
-            summary[lab] /= total_negatives
+            summary[lab+"_rate"] = summary[lab] / max(1, total_negatives)
 
     return summary
 
