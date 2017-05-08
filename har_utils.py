@@ -1,5 +1,6 @@
 import numpy as np
 from models import Event, Segment
+import matplotlib.pyplot as plt
 
 
 # TODO the shorter input should be pad with zeros
@@ -301,3 +302,53 @@ def get_scores(y_true_bin, y_pred_bin):
             "scored_pred_events": scored_pred_events,
             "events_summary": events_summary(scored_true_events, scored_pred_events),
             "frames_summary": frames_summary(scored_frames)}
+
+
+def plot_frame_pies(summary_of_frames):
+    # FIXME labels with zero counts should be omitted
+    positive_labels = ["tp", "f", "d", "ua", "uz"]
+    positive_frames = [summary_of_frames[lab] for lab in positive_labels]
+    negative_labels = ["tn", "m", "i", "oa", "oz"]
+    negative_frames = [summary_of_frames[lab] for lab in negative_labels]
+
+    fig1, (ax1, ax2) = plt.subplots(1, 2)
+    ax1.pie(positive_frames, labels=positive_labels, autopct='%1.1f%%',
+            shadow=True, startangle=90)
+    ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    ax1.set_title('Positive frames')
+
+    # fig2, ax2 = plt.subplots()
+    ax2.pie(negative_frames, labels=negative_labels, autopct='%1.1f%%',
+            shadow=True, startangle=90)
+    ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    ax2.set_title('Negative frames')
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_event_bars(summary_of_events):
+    events_labels = ["D", "F", "FM", "M", "C", "M'", "FM'", "F'", "I'"]
+    events_counts = [summary_of_events[lab] for lab in events_labels]
+
+    n_labels = len(events_counts)
+    column = 1
+    bar_width = 0.1
+
+    # Initialize the vertical-offset for the stacked bar chart.
+    y_offset = 0.0
+
+    # Plot bars
+    p = [""] * n_labels
+    for i_lab in range(n_labels):
+        p[i_lab] = plt.bar(column, events_counts[i_lab], bar_width, bottom=y_offset)
+        # , color=colors[row])
+        if events_counts[i_lab]:
+            plt.text(column, y_offset + 0.5, events_labels[i_lab] + " (%d)" % events_counts[i_lab])
+        y_offset = y_offset + events_counts[i_lab]
+
+    plt.xticks([])
+    plt.legend(p, events_labels)
+    plt.tight_layout()
+
+    plt.show()
