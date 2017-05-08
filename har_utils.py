@@ -296,8 +296,8 @@ def get_scores(y_true_bin, y_pred_bin):
     scored_segments = frames2segments(y_true_bin, y_pred_bin)
     scored_frames = segments2frames(scored_segments)
     scored_true_events, scored_pred_events = score_events(scored_segments, y_true_evs, y_pred_evs)
-    print(scored_true_events)
-    print(scored_pred_events)
 
-    print(events_summary(scored_true_events, scored_pred_events))
-    print(frames_summary(scored_frames))
+    return {"scored_true_events": scored_true_events,
+            "scored_pred_events": scored_pred_events,
+            "events_summary": events_summary(scored_true_events, scored_pred_events),
+            "frames_summary": frames_summary(scored_frames)}
