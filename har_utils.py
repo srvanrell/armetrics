@@ -305,21 +305,22 @@ def get_scores(y_true_bin, y_pred_bin):
 
 
 def plot_frame_pies(summary_of_frames):
-    # FIXME labels with zero counts should be omitted
     positive_labels = ["tp", "f", "d", "ua", "uz"]
-    positive_frames = [summary_of_frames[lab] for lab in positive_labels]
+    positive_labels = [lab for lab in positive_labels if summary_of_frames[lab] > 0]
+    positive_counts = [summary_of_frames[lab] for lab in positive_labels]
+
     negative_labels = ["tn", "m", "i", "oa", "oz"]
-    negative_frames = [summary_of_frames[lab] for lab in negative_labels]
+    negative_labels = [lab for lab in negative_labels if summary_of_frames[lab] > 0]
+    negative_counts = [summary_of_frames[lab] for lab in negative_labels]
 
     fig1, (ax1, ax2) = plt.subplots(1, 2)
-    ax1.pie(positive_frames, labels=positive_labels, autopct='%1.1f%%',
-            shadow=True, startangle=90)
+    ax1.pie(positive_counts, labels=positive_labels, autopct='%1.1f%%',
+            startangle=90, pctdistance=1.1, labeldistance=1.2)
     ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     ax1.set_title('Positive frames')
 
-    # fig2, ax2 = plt.subplots()
-    ax2.pie(negative_frames, labels=negative_labels, autopct='%1.1f%%',
-            shadow=True, startangle=90)
+    ax2.pie(negative_counts, labels=negative_labels, autopct='%1.1f%%',
+            startangle=90, pctdistance=1.1, labeldistance=1.2)
     ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     ax2.set_title('Negative frames')
 
@@ -327,28 +328,38 @@ def plot_frame_pies(summary_of_frames):
     plt.show()
 
 
-def plot_event_bars(summary_of_events):
-    events_labels = ["D", "F", "FM", "M", "C", "M'", "FM'", "F'", "I'"]
-    events_counts = [summary_of_events[lab] for lab in events_labels]
+def plot_event_bars(dic_summary_of_events):
+    tags = []
+    for i, tag in enumerate(dic_summary_of_events):
+        tags.append(tag)
+        summary_of_events = dic_summary_of_events[tag]
+        events_labels = ["D", "F", "FM", "M", "C", "M'", "FM'", "F'", "I'"]
+        events_counts = [summary_of_events[lab] for lab in events_labels]
+        total_count = sum(events_counts)*1.0
 
-    n_labels = len(events_counts)
-    column = 1
-    bar_width = 0.1
+        n_labels = len(events_counts)
+        column = i
+        bar_width = 0.2
 
-    # Initialize the vertical-offset for the stacked bar chart.
-    y_offset = 0.0
+        colors = plt.cm.Vega10(np.linspace(0, 1, n_labels))
 
-    # Plot bars
-    p = [""] * n_labels
-    for i_lab in range(n_labels):
-        p[i_lab] = plt.bar(column, events_counts[i_lab], bar_width, bottom=y_offset)
-        # , color=colors[row])
-        if events_counts[i_lab]:
-            plt.text(column, y_offset + 0.5, events_labels[i_lab] + " (%d)" % events_counts[i_lab])
-        y_offset = y_offset + events_counts[i_lab]
+        # Initialize the vertical-offset for the stacked bar chart.
+        y_offset = 0.0
 
-    plt.xticks([])
-    plt.legend(p, events_labels)
+        # Plot bars
+        p = [""] * n_labels
+        for i_lab in range(n_labels):
+            norm_count = events_counts[i_lab] / total_count
+            p[i_lab] = plt.bar(column, norm_count, bar_width, bottom=y_offset, color=colors[i_lab])
+            if events_counts[i_lab]:
+                plt.text(column, y_offset + 0.5 * norm_count,
+                         events_labels[i_lab] + " (%d)" % events_counts[i_lab])
+            y_offset = y_offset + norm_count
+
+    plt.xticks(range(len(tags)), tags)
+    plt.legend(p, events_labels, loc="best", bbox_to_anchor=(1.05, 1))
     plt.tight_layout()
+
+    plt.title("Event diagram per activity")
 
     plt.show()
