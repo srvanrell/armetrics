@@ -315,12 +315,12 @@ def plot_frame_pies(summary_of_frames):
 
     fig1, (ax1, ax2) = plt.subplots(1, 2)
     ax1.pie(positive_counts, labels=positive_labels, autopct='%1.1f%%',
-            startangle=90, pctdistance=1.1, labeldistance=1.2)
+            startangle=90, pctdistance=1.1, labeldistance=1.25)
     ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     ax1.set_title('Positive frames')
 
     ax2.pie(negative_counts, labels=negative_labels, autopct='%1.1f%%',
-            startangle=90, pctdistance=1.1, labeldistance=1.2)
+            startangle=90, pctdistance=1.1, labeldistance=1.25)
     ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     ax2.set_title('Negative frames')
 
@@ -363,3 +363,98 @@ def plot_event_bars(dic_summary_of_events):
     plt.title("Event diagram per activity")
 
     plt.show()
+
+
+import radar_chart as rc
+
+
+def spider_plot(title='Titulo',
+                radial_labels=["medida 1", "medida 2", "medida 3"],
+                case_data=[[0.1, 0.2, 0.5],
+                           [0.3, 0.4, 0.6]],
+                labels=["Serie 1", "Serie 2"]
+                ):
+    n_radial = len(radial_labels)
+    theta = rc.radar_factory(n_radial, frame='polygon')
+
+    # radial_labels = ['Frame Recall', 'Frame Precision', '1-Underfill time', '1-Overfill time',  # frame based measures
+    #                 'Correct/ground', '1-Fragmented/ground', '1-Deleted/ground',
+    #                 '1-Inserting/output']  # event based measures
+    #
+    #
+    # case_data = [[0.15, 0.3, 0.45, 0.60, 0.15, 0.3, 0.45, 0.60],
+    #              [1 - 0.15, 1 - 0.3, 1 - 0.45, 1 - 0.60, 1 - 0.15, 1 - 0.3, 1 - 0.45, 1 - 0.60]]
+    # labels = ('Factor 1', 'Factor 2', 'Factor 3', 'Factor 4', 'Factor 5')
+    # labels = labels[:len(case_data)]
+
+    fig, axes = plt.subplots(figsize=(9, 9), nrows=1, ncols=1,
+                             subplot_kw=dict(projection='radar'))
+
+    colors = ['b', 'r', 'g', 'm', 'y']
+    # Plot the four cases from the example data on separate axes
+    # for ax, (title, case_data) in zip(axes.flatten(), data):
+    axes.set_rgrids([0.2, 0.4, 0.6, 0.8, 1])
+    axes.set_title(title, weight='bold', size='medium', position=(0.5, 1.1),
+                   horizontalalignment='center', verticalalignment='center')
+    axes.set_ylim([0, 1])
+    for d, color in zip(case_data, colors):
+        axes.plot(theta, d, color=color)
+        axes.fill(theta, d, facecolor=color, alpha=0.25)
+    axes.set_varlabels(radial_labels)
+
+    # add legend relative to top-left plot
+
+    legend = axes.legend(labels, loc=(0.9, .95),
+                         labelspacing=0.1, fontsize='small')
+
+    plt.show()
+
+
+def spider_summaries(act, frame_summaries, event_summaries, labels):
+    """ Activity should be filtered in the inputs"""
+    case_data = []
+    for fr_summary, ev_summary in zip(frame_summaries, event_summaries):
+        # Frame based measures
+        tp_frames = fr_summary[act]["tp"]
+        fn_frames = sum(fr_summary[act][l] for l in ["f", "d", "ua", "uz"])
+        fp_frames = sum(fr_summary[act][l] for l in ["i", "oa", "oz", "m"])
+
+        recall_fr = 1.0 * tp_frames / (tp_frames + fn_frames)
+        precision_fr = 1.0 * tp_frames / (tp_frames + fp_frames)
+
+        # Frame based time measures
+        positive_frames = tp_frames + fn_frames
+        underfill_frames = (fr_summary[act]["ua"] + fr_summary[act]["uz"])
+        overfill_frames = (fr_summary[act]["oa"] + fr_summary[act]["oz"])
+
+        underfill_rate = 1.0 * underfill_frames / positive_frames
+        overfill_rate = 1.0 * overfill_frames / positive_frames
+
+        # Event based measures
+        tp_events = ev_summary[act]["C"]
+        ground_events = sum(ev_summary[act][l] for l in ["C", "F", "FM", "M", "D"])
+        output_events = sum(ev_summary[act][l] for l in ["C'", "F'", "FM'", "M'", "I'"])
+
+        recall_ev = 1.0 * tp_events / ground_events  # Esta bien la definicion?
+        precision_ev = 1.0 * tp_events / output_events  # Esta bien la definicion?
+
+        frag_rate = 1.0 * sum(ev_summary[act][l] for l in ["F", "FM"]) / ground_events
+        merge_rate = 1.0 * sum(ev_summary[act][l] for l in ["M", "FM"]) / ground_events
+        del_rate = 1.0 * sum(ev_summary[act][l] for l in ["D"]) / ground_events
+        ins_rate = 1.0 * sum(ev_summary[act][l] for l in ["I'"]) / output_events
+
+        # Saving data to plot
+        case_data.append([recall_fr, precision_fr,
+                          1 - underfill_rate, 1 - overfill_rate,
+                          recall_ev, precision_ev,
+                          1 - frag_rate, 1 - merge_rate,
+                          1 - del_rate, 1 - ins_rate])
+
+    spider_plot(title=act,
+                radial_labels=["frame recall", "frame precision",
+                               "1 - underfill rate", "1 - overfill rate",
+                               "event recall", "event precision",
+                               "1-frag rate", "1-merge rate",
+                               "1-del rate", "1-ins rate"],
+                case_data=case_data,
+                labels=labels)
