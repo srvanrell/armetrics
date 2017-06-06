@@ -1,6 +1,7 @@
 import numpy as np
 from models import Event, Segment
 import matplotlib.pyplot as plt
+from radar_chart import radar_factory
 
 
 # TODO the shorter input should be pad with zeros
@@ -365,17 +366,18 @@ def plot_event_bars(dic_summary_of_events):
     plt.show()
 
 
-import radar_chart as rc
-
-
-def spider_plot(title='Titulo',
-                radial_labels=["medida 1", "medida 2", "medida 3"],
-                case_data=[[0.1, 0.2, 0.5],
-                           [0.3, 0.4, 0.6]],
-                labels=["Serie 1", "Serie 2"]
-                ):
+def spider_plot(title, radial_labels, case_data, case_labels):
+    """
+    Minimum example of the inputs
+    :param title: 'Titulo'
+    :param radial_labels: ["medida 1", "medida 2", "medida 3"]
+    :param case_data: [[0.1, 0.2, 0.5],
+                       [0.3, 0.4, 0.6]]
+    :param case_labels: ["Serie 1", "Serie 2"]
+    :return:
+    """
     n_radial = len(radial_labels)
-    theta = rc.radar_factory(n_radial, frame='polygon')
+    theta = radar_factory(n_radial, frame='polygon')
 
     fig, axes = plt.subplots(figsize=(9, 9), nrows=1, ncols=1,
                              subplot_kw=dict(projection='radar'))
@@ -390,7 +392,7 @@ def spider_plot(title='Titulo',
         # axes.fill(theta, d, facecolor=color, alpha=0.25)  # Fill the polygon
     axes.set_varlabels(radial_labels)
 
-    axes.legend(labels, loc=(0.9, .95), labelspacing=0.1, fontsize='small')
+    axes.legend(case_labels, loc=(0.9, .95), labelspacing=0.1, fontsize='small')
 
     plt.show()
 
@@ -443,4 +445,4 @@ def spider_summaries(frame_summaries, event_summaries, labels):
                                    "1-frag rate", "1-merge rate",
                                    "1-del rate", "1-ins rate"],
                     case_data=case_data,
-                    labels=labels)
+                    case_labels=labels)
