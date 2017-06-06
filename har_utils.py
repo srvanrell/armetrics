@@ -266,6 +266,7 @@ def events_summary(scored_true_events, scored_pred_events, normalize=True):
 
 
 def frames_summary(scored_frames, normalize=True):
+    # TODO add docstring
 
     summary = {"tp": scored_frames.count("C"),    # Total correct frames (true positives)
                "tn": scored_frames.count(""),     # Total correct frames (true negatives)
@@ -279,15 +280,22 @@ def frames_summary(scored_frames, normalize=True):
                "oz": scored_frames.count("Oz"),   # Total ending overfill frames
                }
 
+    summary["u"] = summary["ua"] + summary["uz"]  # Total underfill frames
+    summary["o"] = summary["oa"] + summary["oz"]  # Total overfill frames
+    summary["total_positives"] = sum(summary[lab] for lab in ["tp", "f", "d", "ua", "uz"])
+    summary["total_negatives"] = sum(summary[lab] for lab in ["tn", "m", "i", "oa", "oz"])
+    summary["fp"] = summary["total_positives"] - summary["tp"]
+    summary["fn"] = summary["total_negatives"] - summary["tn"]
+
     if normalize:
         # Normalized positives frame metrics
-        total_positives = summary["tp"] + summary["d"] + summary["f"] + summary["ua"] + summary["uz"]
-        for lab in ["tp", "d", "f", "ua", "uz"]:
-            summary[lab+"_rate"] = summary[lab] / max(1, total_positives)
+        for lab in ["tp", "d", "f", "ua", "uz", "u", "fp"]:
+            summary[lab+"_rate"] = summary[lab] / max(1, summary["total_positives"])
         # Normalized predicted events metrics
-        total_negatives = summary["tn"] + summary["i"] + summary["m"] + summary["oa"] + summary["oz"]
-        for lab in ["tn", "i", "m", "oa", "oz"]:
-            summary[lab+"_rate"] = summary[lab] / max(1, total_negatives)
+        for lab in ["tn", "i", "m", "oa", "oz", "o", "fn"]:
+            summary[lab+"_rate"] = summary[lab] / max(1, summary["total_negatives"])
+
+    summary["matching_time"] = summary["total_positives"] / (summary["tp"] + summary["fn"])  # Matching time
 
     return summary
 
@@ -303,6 +311,38 @@ def get_scores(y_true_bin, y_pred_bin):
             "scored_pred_events": scored_pred_events,
             "events_summary": events_summary(scored_true_events, scored_pred_events),
             "frames_summary": frames_summary(scored_frames)}
+
+
+# TODO test this function in an experiment
+def get_session_scores(ytest, ypred, session_indices, classes_of_interest, average_mode="samples"):
+    """ (NOT IMPLEMENTED) average_mode should control if average should be macro, micro or samples.
+    Open discussion involves if averaging should be done across sessions and/or across activities.
+    """
+    events_summaries = {}
+    frames_summaries = {}
+
+    for act in classes_of_interest:
+        total_scores_dic = {}
+
+        for si in session_indices:
+            ytest_bin = binarize_frames(ytest.iloc[si], act)
+            ypred_bin = binarize_frames(ypred.iloc[si], act)
+            scores_dic = get_scores(ytest_bin, ypred_bin)
+
+            if total_scores_dic.get("events_summary"):
+                for kw in scores_dic["events_summary"]:
+                    total_scores_dic["events_summary"][kw] += scores_dic["events_summary"][kw]
+            else:
+                total_scores_dic["events_summary"] = scores_dic["events_summary"]
+
+            if total_scores_dic.get("frames_summary"):
+                for kw in scores_dic["frames_summary"]:
+                    total_scores_dic["frames_summary"][kw] += scores_dic["frames_summary"][kw]
+            else:
+                total_scores_dic["frames_summary"] = scores_dic["frames_summary"]
+
+        events_summaries[act] = total_scores_dic["events_summary"]
+        frames_summaries[act] = total_scores_dic["frames_summary"]
 
 
 def plot_frame_pies(summary_of_frames):
