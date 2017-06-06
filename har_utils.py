@@ -331,10 +331,10 @@ def plot_frame_pies(summary_of_frames):
 
 def plot_event_bars(dic_summary_of_events):
     tags = []
+    events_labels = ["D", "F", "FM", "M", "C", "M'", "FM'", "F'", "I'"]
     for i, tag in enumerate(dic_summary_of_events):
         tags.append(tag)
         summary_of_events = dic_summary_of_events[tag]
-        events_labels = ["D", "F", "FM", "M", "C", "M'", "FM'", "F'", "I'"]
         events_counts = [summary_of_events[lab] for lab in events_labels]
         total_count = sum(events_counts)*1.0
 
