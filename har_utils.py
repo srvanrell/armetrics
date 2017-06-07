@@ -320,33 +320,25 @@ def get_sessions_scores(ytest_by_session, ypred_by_session, classes_of_interest,
     """ (NOT IMPLEMENTED) average_mode should control if any average should be done (macro, micro, samples, ...).
     Open discussion involves if averaging should be done across sessions and/or across activities.
     """
-    events_summaries = {}
-    frames_summaries = {}
+    df = pd.DataFrame()
 
-    for act in classes_of_interest:
-        total_scores_dic = {}
-
-        for ytest, ypred in zip(ytest_by_session, ypred_by_session):
+    for sid, (ytest, ypred) in enumerate(zip(ytest_by_session, ypred_by_session)):
+        for act in classes_of_interest:
             ytest_bin = binarize_frames(ytest, act)
             ypred_bin = binarize_frames(ypred, act)
             scores_dic = get_scores(ytest_bin, ypred_bin)
 
-            if total_scores_dic.get("events_summary"):
-                for kw in scores_dic["events_summary"]:
-                    total_scores_dic["events_summary"][kw] += scores_dic["events_summary"][kw]
-            else:
-                total_scores_dic["events_summary"] = scores_dic["events_summary"]
+            temp_df = pd.DataFrame(scores_dic["events_summary"], index=[sid])
+            temp_df["activity"] = act
+            temp2_df = pd.DataFrame(scores_dic["frames_summary"], index=[sid])
+            temp2_df["activity"] = act
 
-            if total_scores_dic.get("frames_summary"):
-                for kw in scores_dic["frames_summary"]:
-                    total_scores_dic["frames_summary"][kw] += scores_dic["frames_summary"][kw]
-            else:
-                total_scores_dic["frames_summary"] = scores_dic["frames_summary"]
+            df = pd.concat([df, pd.merge(temp_df, temp2_df)])
 
-        events_summaries[act] = total_scores_dic["events_summary"]
-        frames_summaries[act] = total_scores_dic["frames_summary"]
+    df.reset_index(inplace=True)
+    df.rename(columns={"index": "session"}, inplace=True)
 
-    return events_summaries, frames_summaries
+    return df
 
 
 def plot_frame_pies(summary_of_frames):
