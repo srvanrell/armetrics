@@ -2,6 +2,7 @@ import numpy as np
 from models import Event, Segment
 import matplotlib.pyplot as plt
 from radar_chart import radar_factory
+import pandas as pd
 
 
 # TODO the shorter input should be pad with zeros
@@ -295,7 +296,8 @@ def frames_summary(scored_frames, normalize=True):
         for lab in ["tn", "i", "m", "oa", "oz", "o", "fn"]:
             summary[lab+"_rate"] = summary[lab] / max(1, summary["total_negatives"])
 
-    summary["matching_time"] = summary["total_positives"] / (summary["tp"] + summary["fn"])  # Matching time
+    # FIXME Chequear que este funcionando bien cuando no hay etiquetas positivas en la referencia
+    summary["matching_time"] = summary["total_positives"] / max(1, summary["tp"] + summary["fn"])  # Matching time
 
     return summary
 
@@ -314,8 +316,8 @@ def get_scores(y_true_bin, y_pred_bin):
 
 
 # TODO test this function in an experiment
-def get_session_scores(ytest, ypred, session_indices, classes_of_interest, average_mode="samples"):
-    """ (NOT IMPLEMENTED) average_mode should control if average should be macro, micro or samples.
+def get_sessions_scores(ytest_by_session, ypred_by_session, classes_of_interest, average_mode="samples"):
+    """ (NOT IMPLEMENTED) average_mode should control if any average should be done (macro, micro, samples, ...).
     Open discussion involves if averaging should be done across sessions and/or across activities.
     """
     events_summaries = {}
@@ -324,9 +326,9 @@ def get_session_scores(ytest, ypred, session_indices, classes_of_interest, avera
     for act in classes_of_interest:
         total_scores_dic = {}
 
-        for si in session_indices:
-            ytest_bin = binarize_frames(ytest.iloc[si], act)
-            ypred_bin = binarize_frames(ypred.iloc[si], act)
+        for ytest, ypred in zip(ytest_by_session, ypred_by_session):
+            ytest_bin = binarize_frames(ytest, act)
+            ypred_bin = binarize_frames(ypred, act)
             scores_dic = get_scores(ytest_bin, ypred_bin)
 
             if total_scores_dic.get("events_summary"):
@@ -343,6 +345,8 @@ def get_session_scores(ytest, ypred, session_indices, classes_of_interest, avera
 
         events_summaries[act] = total_scores_dic["events_summary"]
         frames_summaries[act] = total_scores_dic["frames_summary"]
+
+    return events_summaries, frames_summaries
 
 
 def plot_frame_pies(summary_of_frames):
