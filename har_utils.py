@@ -283,21 +283,21 @@ def frames_summary(scored_frames, normalize=True):
 
     summary["u"] = summary["ua"] + summary["uz"]  # Total underfill frames
     summary["o"] = summary["oa"] + summary["oz"]  # Total overfill frames
-    summary["total_positives"] = sum(summary[lab] for lab in ["tp", "f", "d", "ua", "uz"])
-    summary["total_negatives"] = sum(summary[lab] for lab in ["tn", "m", "i", "oa", "oz"])
-    summary["fp"] = summary["total_positives"] - summary["tp"]
-    summary["fn"] = summary["total_negatives"] - summary["tn"]
+    summary["positives"] = sum(summary[lab] for lab in ["tp", "f", "d", "ua", "uz"])
+    summary["negatives"] = sum(summary[lab] for lab in ["tn", "m", "i", "oa", "oz"])
+    summary["fp"] = summary["positives"] - summary["tp"]
+    summary["fn"] = summary["negatives"] - summary["tn"]
 
     if normalize:
         # Normalized positives frame metrics
         for lab in ["tp", "d", "f", "ua", "uz", "u", "fp"]:
-            summary[lab+"_rate"] = summary[lab] / max(1, summary["total_positives"])
+            summary[lab+"_rate"] = summary[lab] / max(1, summary["positives"])
         # Normalized predicted events metrics
         for lab in ["tn", "i", "m", "oa", "oz", "o", "fn"]:
-            summary[lab+"_rate"] = summary[lab] / max(1, summary["total_negatives"])
+            summary[lab+"_rate"] = summary[lab] / max(1, summary["negatives"])
 
     # FIXME Chequear que este funcionando bien cuando no hay etiquetas positivas en la referencia
-    summary["matching_time"] = summary["total_positives"] / max(1, summary["tp"] + summary["fn"])  # Matching time
+    summary["matching_time"] = summary["positives"] / max(1, summary["tp"] + summary["fn"])  # Matching time
 
     return summary
 
@@ -329,11 +329,12 @@ def get_sessions_scores(ytest_by_session, ypred_by_session, classes_of_interest,
             scores_dic = get_scores(ytest_bin, ypred_bin)
 
             temp_df = pd.DataFrame(scores_dic["events_summary"], index=[sid])
-            temp_df["activity"] = act
             temp2_df = pd.DataFrame(scores_dic["frames_summary"], index=[sid])
-            temp2_df["activity"] = act
 
-            df = pd.concat([df, pd.merge(temp_df, temp2_df)])
+            temp_merged = pd.concat([temp_df, temp2_df], axis=1)
+            temp_merged["activity"] = act
+
+            df = pd.concat([df, temp_merged])
 
     df.reset_index(inplace=True)
     df.rename(columns={"index": "session"}, inplace=True)
