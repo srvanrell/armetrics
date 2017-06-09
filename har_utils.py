@@ -437,7 +437,8 @@ def spider_plot(title, radial_labels, case_data, case_labels):
 def spider_summaries(frame_summaries, event_summaries, labels):
     for act in frame_summaries[0].keys():
         case_data = []
-        for fr_summary, ev_summary in zip(frame_summaries, event_summaries):
+        to_print = []
+        for fr_summary, ev_summary, lab in zip(frame_summaries, event_summaries, labels):
             # Frame based measures
             tp_frames = fr_summary[act]["tp"]
             fn_frames = sum(fr_summary[act][l] for l in ["f", "d", "ua", "uz"])
@@ -475,14 +476,19 @@ def spider_summaries(frame_summaries, event_summaries, labels):
                               1 - frag_rate, 1 - merge_rate,
                               1 - del_rate, 1 - ins_rate])
 
+            to_print.append("Global matching time (%s): %0.2f" % (lab, 2.0 * total_time_accuracy))
+
         spider_plot(title=act,
                     radial_labels=["frame recall", "frame precision",
-                                   "1 - underfill rate", "1 - overfill rate", "total time accuracy/2",
+                                   "1 - underfill rate", "1 - overfill rate", "global matching time/2",
                                    "event recall", "event precision",
                                    "1-frag rate", "1-merge rate",
                                    "1-del rate", "1-ins rate"],
                     case_data=case_data,
                     case_labels=labels)
+
+        for s in to_print:
+            print(s)
 
 
 def spider_df_summaries(summaries_by_activity, labels):
