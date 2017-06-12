@@ -252,16 +252,45 @@ def events_summary(scored_true_events, scored_pred_events, normalize=True):
                "I'": scored_pred_events.count("I"),    # Total inserted events
                "F'": scored_pred_events.count("F"),    # Total fragmenting events
                "FM'": scored_pred_events.count("FM"),  # Total fragmenting and merging events
-               "M'": scored_pred_events.count("M")     # Total merging events
+               "M'": scored_pred_events.count("M"),     # Total merging events
+               "num_true_events": len(scored_true_events),
+               "num_pred_events": len(scored_pred_events)
                }
 
     if normalize:
         # Normalized true events metrics
         for lab in ["C", "D", "F", "FM", "M"]:
-            summary[lab+"_rate"] = summary[lab] / max(1, len(scored_true_events))
+            if summary["num_true_events"] > 0:
+                summary[lab+"_rate"] = summary[lab] / max(1, summary["num_true_events"])
+            else:
+                summary[lab + "_rate"] = np.nan
         # Normalized predicted events metrics
         for lab in ["C'", "I'", "F'", "FM'", "M'"]:
-            summary[lab+"_rate"] = summary[lab] / max(1, len(scored_pred_events))
+            if summary["num_pred_events"] > 0:
+                summary[lab+"_rate"] = summary[lab] / max(1, summary["num_pred_events"])
+            else:
+                summary[lab + "_rate"] = np.nan
+
+    if summary["num_true_events"] > 0:
+        summary["event_recall"] = 1.0 * summary["C"] / summary["num_true_events"]
+
+        summary["frag_rate"] = 1.0 * sum(summary[l] for l in ["F", "FM"]) / summary["num_true_events"]
+        summary["merge_rate"] = 1.0 * sum(summary[l] for l in ["M", "FM"]) / summary["num_true_events"]
+        summary["del_rate"] = 1.0 * sum(summary[l] for l in ["D"]) / summary["num_true_events"]
+    else:
+        summary["event_recall"] = np.nan
+
+        summary["frag_rate"] = np.nan
+        summary["merge_rate"] = np.nan
+        summary["del_rate"] = np.nan
+
+    if summary["num_pred_events"] > 0:
+        summary["event_precision"] = 1.0 * summary["C"] / summary["num_pred_events"]
+
+        summary["ins_rate"] = 1.0 * sum(summary[l] for l in ["I'"]) / summary["num_pred_events"]
+    else:
+        summary["event_precision"] = np.nan
+        summary["ins_rate"] = np.nan
 
     return summary
 
@@ -287,17 +316,34 @@ def frames_summary(scored_frames, normalize=True):
     summary["negatives"] = sum(summary[lab] for lab in ["tn", "m", "i", "oa", "oz"])
     summary["fp"] = summary["positives"] - summary["tp"]
     summary["fn"] = summary["negatives"] - summary["tn"]
+    if summary["positives"] > 0:
+        summary["frame_precision"] = 1.0 * summary["tp"] / (summary["tp"] + summary["fp"])
+    else:
+        summary["frame_precision"] = np.nan
+    if (summary["tp"] + summary["fn"]) > 0:
+        summary["frame_recall"] = 1.0 * summary["tp"] / (summary["tp"] + summary["fn"])
+    else:
+        summary["frame_recall"] = np.nan
 
     if normalize:
         # Normalized positives frame metrics
         for lab in ["tp", "d", "f", "ua", "uz", "u", "fp"]:
-            summary[lab+"_rate"] = summary[lab] / max(1, summary["positives"])
+            if summary["positives"] > 0:
+                summary[lab+"_rate"] = summary[lab] / max(1, summary["positives"])
+            else:
+                summary[lab + "_rate"] = np.nan
         # Normalized predicted events metrics
         for lab in ["tn", "i", "m", "oa", "oz", "o", "fn"]:
-            summary[lab+"_rate"] = summary[lab] / max(1, summary["negatives"])
+            if summary["negatives"] > 0:
+                summary[lab+"_rate"] = summary[lab] / max(1, summary["negatives"])
+            else:
+                summary[lab + "_rate"] = np.nan
 
     # FIXME Chequear que este funcionando bien cuando no hay etiquetas positivas en la referencia
-    summary["matching_time"] = summary["positives"] / max(1, summary["tp"] + summary["fn"])  # Matching time
+    if summary["tp"] + summary["fn"] > 0:
+        summary["matching_time"] = summary["positives"] / max(1, summary["tp"] + summary["fn"])  # Matching time
+    else:
+        summary["matching_time"] = np.nan
 
     return summary
 
@@ -416,7 +462,7 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     n_radial = len(radial_labels)
     theta = radar_factory(n_radial, frame='polygon')
 
-    fig, axes = plt.subplots(figsize=(9, 9), nrows=1, ncols=1,
+    fig, axes = plt.subplots(figsize=(7, 7), nrows=1, ncols=1,
                              subplot_kw=dict(projection='radar'))
 
     colors = ['b', 'r', 'g', 'y', 'm']
@@ -492,52 +538,45 @@ def spider_summaries(frame_summaries, event_summaries, labels):
 
 
 def spider_df_summaries(summaries_by_activity, labels):
-    for act in summaries_by_activity[0].index.tolist():
+    for act in summaries_by_activity[0].mean().index.tolist():
         case_data = []
-        for summary in summaries_by_activity:
-            # for fr_summary, ev_summary in zip(frame_summaries, event_summaries):
-            # Frame based measures
-            tp_frames = summary.tp[act]
-            fn_frames = summary.fn[act]
-            fp_frames = summary.fp[act]
-
-            recall_fr = 1.0 * tp_frames / (tp_frames + fn_frames)
-            precision_fr = 1.0 * tp_frames / (tp_frames + fp_frames)
-            total_time_accuracy = 0.5 * (tp_frames + fp_frames) / (tp_frames + fn_frames)
-
-            # Frame based time measures
-            positive_frames = tp_frames + fn_frames
-            underfill_frames = summary.u[act]
-            overfill_frames = summary.o[act]
-
-            underfill_rate = 1.0 * underfill_frames / positive_frames
-            overfill_rate = 1.0 * overfill_frames / positive_frames
-
-            # Event based measures
-            tp_events = summary.C[act]
-            ground_events = sum(summary[l][act] for l in ["C", "F", "FM", "M", "D"])
-            output_events = sum(summary[l][act] for l in ["C'", "F'", "FM'", "M'", "I'"])
-
-            recall_ev = 1.0 * tp_events / ground_events  # Esta bien la definicion?
-            precision_ev = 1.0 * tp_events / output_events  # Esta bien la definicion?
-
-            frag_rate = 1.0 * sum(summary[l][act] for l in ["F", "FM"]) / ground_events
-            merge_rate = 1.0 * sum(summary[l][act] for l in ["M", "FM"]) / ground_events
-            del_rate = 1.0 * sum(summary[l][act] for l in ["D"]) / ground_events
-            ins_rate = 1.0 * sum(summary[l][act] for l in ["I'"]) / output_events
-
+        matching_time_mean = []
+        matching_time_error = []
+        for summary, lab in zip(summaries_by_activity, labels):
+            summary_mean = summary.mean()
+            summary_error = summary.std()
             # Saving data to plot
-            case_data.append([recall_fr, precision_fr,
-                              1 - underfill_rate, 1 - overfill_rate, total_time_accuracy,
-                              recall_ev, precision_ev,
-                              1 - frag_rate, 1 - merge_rate,
-                              1 - del_rate, 1 - ins_rate])
+            case_data.append([summary_mean.frame_recall[act], summary_mean.frame_precision[act],
+                              # 1 - summary_mean.u_rate[act], 1 - summary_mean.o_rate[act],
+                              summary_mean.event_recall[act], summary_mean.event_precision[act],
+                              1 - summary_mean.frag_rate[act], 1 - summary_mean.merge_rate[act],
+                              1 - summary_mean.del_rate[act], 1 - summary_mean.ins_rate[act]])
+
+            matching_time_mean.append(summary_mean.matching_time[act])
+            matching_time_error.append(summary_error.matching_time[act])
 
         spider_plot(title=act,
                     radial_labels=["frame recall", "frame precision",
-                                   "1 - underfill rate", "1 - overfill rate", "total time accuracy/2",
+                                   # "1 - underfill rate", "1 - overfill rate",
                                    "event recall", "event precision",
                                    "1-frag rate", "1-merge rate",
                                    "1-del rate", "1-ins rate"],
                     case_data=case_data,
                     case_labels=labels)
+
+        plot_matching_time(matching_time_mean, labels, errors=matching_time_error)
+
+
+def plot_matching_time(means, labels, errors=None):
+    val = means  # the bar lengths
+    pos = np.arange(len(labels)) + .5  # the bar centers on the y axis
+
+    plt.figure()
+    colors = ['b', 'r', 'g', 'y', 'm']
+    plt.barh(pos, val, align='center', xerr=errors, height=0.7, color=colors)
+    plt.axvline(x=1, color="k")
+    plt.yticks(pos, labels)
+    plt.gca().invert_yaxis()
+    plt.xlabel('Predicted_time/True_time')
+
+    plt.show()
