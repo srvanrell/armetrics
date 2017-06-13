@@ -5,7 +5,6 @@ from radar_chart import radar_factory
 import pandas as pd
 
 
-# TODO the shorter input should be pad with zeros
 def frames2segments(y_true, y_pred, advanced_labels=True):
     """
     Compute segment boundaries and compare y_true with y_pred.
@@ -29,6 +28,11 @@ def frames2segments(y_true, y_pred, advanced_labels=True):
     (list) third column corresponds to basic labels (TP, TN, FP, FN)
     or advanced labels (C, I, D, M, F, Oa, Oz, Ua, Uz)
     """
+    # Pad with zeros
+    max_len = max(len(y_true), len(y_pred))
+    y_true = np.pad(y_true, (0, max_len - len(y_true)), "constant")
+    y_pred = np.pad(y_pred, (0, max_len - len(y_pred)), "constant")
+
     y_true_breaks = np.flatnonzero(np.diff(y_true)) + 1  # locate changes in y_true
     y_pred_breaks = np.flatnonzero(np.diff(y_pred)) + 1  # locate changes in y_pred
     seg_breaks = np.union1d(y_true_breaks, y_pred_breaks)  # define segment breaks
@@ -583,7 +587,7 @@ def plot_matching_time(means, labels, errors=None):
     plt.figure()
     colors = ['b', 'r', 'g', 'y', 'm']
     plt.barh(pos, val, align='center', xerr=errors, height=0.7, color=colors)
-    plt.axvline(x=1, color="k")
+    plt.axvline(x=1, color="k", linestyle="dashed")
     plt.yticks(pos, labels)
     plt.gca().invert_yaxis()
     plt.xlabel('Predicted_time/True_time')
@@ -594,10 +598,12 @@ standardized_names = {"RUMIA PASTURA": "RUMIA"}
 names_of_interest = ["PASTOREO", "RUMIA"]
 
 
-def load_chewbite(filename):
+def load_chewbite(filename, start=None, end=None):
     df = pd.read_table(filename, decimal=',', header=None)
     df.dropna(axis=1, how='all', inplace=True)
     df.columns = ["start", "end", "label"]
+
+    df[["start", "end"]] = df[["start", "end"]].astype('float')
 
     df = df.round(0)
     df.label = df.label.str.strip().str.upper()
@@ -605,7 +611,14 @@ def load_chewbite(filename):
     df.label.replace(standardized_names, inplace=True)
     df = df.loc[df.label.isin(names_of_interest)]
 
-    df[["start", "end"]] = df[["start", "end"]].astype('int64')
+    df[["start", "end"]] = df[["start", "end"]].astype('int')
+
+    if start:
+        print("Labels starting at", start)
+        df = df[df.start >= start]
+    if end:
+        print("Labels before", end)
+        df = df[df.end <= end]
 
     segments = [Segment(start, end, label) for name, (start, end, label) in df.iterrows()]
     indexes = [np.arange(start, end) for name, (start, end, label) in df.iterrows()]
