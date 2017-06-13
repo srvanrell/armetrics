@@ -14,6 +14,7 @@ def load_chewbite(filename):
 
     df = df.round(0)
     df.label = df.label.str.strip().str.upper()
+    print(df.label.unique())
     df.label.replace(standardized_names, inplace=True)
     df = df.loc[df.label.isin(names_of_interest)]
 

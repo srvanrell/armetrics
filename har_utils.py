@@ -539,32 +539,41 @@ def spider_summaries(frame_summaries, event_summaries, labels):
 
 def spider_df_summaries(summaries_by_activity, labels):
     for act in summaries_by_activity[0].mean().index.tolist():
-        case_data = []
-        matching_time_mean = []
-        matching_time_error = []
-        for summary, lab in zip(summaries_by_activity, labels):
-            summary_mean = summary.mean()
-            summary_error = summary.std()
-            # Saving data to plot
-            case_data.append([summary_mean.frame_recall[act], summary_mean.frame_precision[act],
-                              # 1 - summary_mean.u_rate[act], 1 - summary_mean.o_rate[act],
-                              summary_mean.event_recall[act], summary_mean.event_precision[act],
-                              1 - summary_mean.frag_rate[act], 1 - summary_mean.merge_rate[act],
-                              1 - summary_mean.del_rate[act], 1 - summary_mean.ins_rate[act]])
+        single_spider_df_summaries([s.get_group(act) for s in summaries_by_activity],
+                                   labels, act)
 
-            matching_time_mean.append(summary_mean.matching_time[act])
-            matching_time_error.append(summary_error.matching_time[act])
 
-        spider_plot(title=act,
-                    radial_labels=["frame recall", "frame precision",
-                                   # "1 - underfill rate", "1 - overfill rate",
-                                   "event recall", "event precision",
-                                   "1-frag rate", "1-merge rate",
-                                   "1-del rate", "1-ins rate"],
-                    case_data=case_data,
-                    case_labels=labels)
+def single_spider_df_summaries(summaries, labels, title="Titulo"):
+    case_data = []
+    matching_time_mean = []
+    matching_time_error = []
+    for summary, lab in zip(summaries, labels):
+        summary_mean = summary.mean()
+        summary_error = summary.std()
+        # Saving data to plot
+        case_data.append([summary_mean.frame_recall, summary_mean.frame_precision,
+                          1 - summary_mean.f_rate, 1 - summary_mean.m_rate,
+                          1 - summary_mean.d_rate, 1 - summary_mean.i_rate,
+                          # 1 - summary_mean.u_rate, 1 - summary_mean.o_rate[act],
+                          summary_mean.event_recall, summary_mean.event_precision,
+                          1 - summary_mean.frag_rate, 1 - summary_mean.merge_rate,
+                          1 - summary_mean.del_rate, 1 - summary_mean.ins_rate])
 
-        plot_matching_time(matching_time_mean, labels, errors=matching_time_error)
+        matching_time_mean.append(summary_mean.matching_time)
+        matching_time_error.append(summary_error.matching_time)
+
+    spider_plot(title=title,
+                radial_labels=["frame recall", "frame precision",
+                               "1-fr_frag rate", "1-fr_merge rate",
+                               "1-fr_del rate", "1-fr_ins rate",
+                               # "1 - underfill rate", "1 - overfill rate",
+                               "event recall", "event precision",
+                               "1-ev_frag rate", "1-ev_merge rate",
+                               "1-ev_del rate", "1-ev_ins rate"],
+                case_data=case_data,
+                case_labels=labels)
+
+    plot_matching_time(matching_time_mean, labels, errors=matching_time_error)
 
 
 def plot_matching_time(means, labels, errors=None):
