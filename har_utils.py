@@ -316,11 +316,14 @@ def frames_summary(scored_frames, normalize=True):
 
     summary["u"] = summary["ua"] + summary["uz"]  # Total underfill frames
     summary["o"] = summary["oa"] + summary["oz"]  # Total overfill frames
-    summary["positives"] = sum(summary[lab] for lab in ["tp", "f", "d", "ua", "uz"])
-    summary["negatives"] = sum(summary[lab] for lab in ["tn", "m", "i", "oa", "oz"])
-    summary["fp"] = summary["positives"] - summary["tp"]
-    summary["fn"] = summary["negatives"] - summary["tn"]
-    if summary["positives"] > 0:
+    summary["ground_positives"] = sum(summary[lab] for lab in ["tp", "f", "d", "ua", "uz"])
+    summary["ground_negatives"] = sum(summary[lab] for lab in ["tn", "m", "i", "oa", "oz"])
+    summary["output_positives"] = sum(summary[lab] for lab in ["tp", "m", "i", "oa", "oz"])
+    summary["output_negatives"] = sum(summary[lab] for lab in ["tn", "f", "d", "ua", "uz"])
+
+    summary["fp"] = summary["output_positives"] - summary["tp"]
+    summary["fn"] = summary["output_negatives"] - summary["tn"]
+    if (summary["tp"] + summary["fp"]) > 0:
         summary["frame_precision"] = 1.0 * summary["tp"] / (summary["tp"] + summary["fp"])
     else:
         summary["frame_precision"] = np.nan
@@ -332,20 +335,20 @@ def frames_summary(scored_frames, normalize=True):
     if normalize:
         # Normalized positives frame metrics
         for lab in ["tp", "d", "f", "ua", "uz", "u", "fp"]:
-            if summary["positives"] > 0:
-                summary[lab+"_rate"] = summary[lab] / max(1, summary["positives"])
+            if summary["ground_positives"] > 0:
+                summary[lab+"_rate"] = summary[lab] / max(1, summary["ground_positives"])
             else:
                 summary[lab + "_rate"] = np.nan
         # Normalized predicted events metrics
         for lab in ["tn", "i", "m", "oa", "oz", "o", "fn"]:
-            if summary["negatives"] > 0:
-                summary[lab+"_rate"] = summary[lab] / max(1, summary["negatives"])
+            if summary["ground_negatives"] > 0:
+                summary[lab+"_rate"] = summary[lab] / max(1, summary["ground_negatives"])
             else:
                 summary[lab + "_rate"] = np.nan
 
     # FIXME Chequear que este funcionando bien cuando no hay etiquetas positivas en la referencia
     if summary["tp"] + summary["fn"] > 0:
-        summary["matching_time"] = summary["positives"] / max(1, summary["tp"] + summary["fn"])  # Matching time
+        summary["matching_time"] = summary["output_positives"] / max(1, summary["tp"] + summary["fn"])  # Matching time
     else:
         summary["matching_time"] = np.nan
 
