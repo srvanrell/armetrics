@@ -473,6 +473,7 @@ def spider_plot(title, radial_labels, case_data, case_labels):
                              subplot_kw=dict(projection='radar'))
 
     colors = ['b', 'r', 'g', 'y', 'm']
+    colors = ["C%d" % i for i in range(len(case_labels))]
     axes.set_rgrids([0.2, 0.4, 0.6, 0.8])
     axes.set_title(title, weight='bold', position=(0.5, 1.1),
                    horizontalalignment='center', verticalalignment='center')
@@ -589,6 +590,7 @@ def plot_matching_time(means, labels, errors=None):
 
     plt.figure()
     colors = ['b', 'r', 'g', 'y', 'm']
+    colors = ["C%d" % i for i in range(len(labels))]
     plt.barh(pos, val, align='center', xerr=errors, height=0.7, color=colors)
     plt.axvline(x=1, color="k", linestyle="dashed")
     plt.yticks(pos, labels)
