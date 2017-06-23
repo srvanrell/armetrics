@@ -612,17 +612,20 @@ def load_chewbite(filename, start=None, end=None):
 
     df = df.round(0)
     df.label = df.label.str.strip().str.upper()
-    print(df.label.unique())
+    print("Original labels:", df.label.unique())
+
     df.label.replace(standardized_names, inplace=True)
     df = df.loc[df.label.isin(names_of_interest)]
+    print("Replacements:", [s_in + " -> " + s_out for s_in, s_out in standardized_names.items()])
+    print("Replaced labels:", df.label.unique())
 
     df[["start", "end"]] = df[["start", "end"]].astype('int')
 
     if start:
-        print("Labels starting at", start)
+        print("Consider labels starting at", start)
         df = df[df.start >= start]
     if end:
-        print("Labels before", end)
+        print("Consider labels before", end)
         df = df[df.end <= end]
 
     segments = [Segment(start, end, label) for name, (start, end, label) in df.iterrows()]
