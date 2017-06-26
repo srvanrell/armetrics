@@ -1,7 +1,7 @@
 import numpy as np
-from models import Event, Segment
+from .models import Event, Segment
 import matplotlib.pyplot as plt
-from radar_chart import radar_factory
+from .radar_chart import radar_factory
 import pandas as pd
 
 
@@ -598,44 +598,3 @@ def plot_matching_time(means, labels, errors=None):
     plt.xlabel('Predicted_time/True_time')
 
     plt.show()
-
-standardized_names = {"RUMIA PASTURA": "RUMIA"}
-names_of_interest = ["PASTOREO", "RUMIA"]
-
-
-def load_chewbite(filename, start=None, end=None):
-    df = pd.read_table(filename, decimal=',', header=None)
-    df.dropna(axis=1, how='all', inplace=True)
-    df.columns = ["start", "end", "label"]
-
-    df[["start", "end"]] = df[["start", "end"]].astype('float')
-
-    df = df.round(0)
-    df.label = df.label.str.strip().str.upper()
-    print("Original labels:", df.label.unique())
-
-    df.label.replace(standardized_names, inplace=True)
-    df = df.loc[df.label.isin(names_of_interest)]
-    print("Replacements:", [s_in + " -> " + s_out for s_in, s_out in standardized_names.items()])
-    print("Replaced labels:", df.label.unique())
-
-    df[["start", "end"]] = df[["start", "end"]].astype('int')
-
-    if start:
-        print("Consider labels starting at", start)
-        df = df[df.start >= start]
-    if end:
-        print("Consider labels before", end)
-        df = df[df.end <= end]
-
-    segments = [Segment(start, end, label) for name, (start, end, label) in df.iterrows()]
-    indexes = [np.arange(start, end) for name, (start, end, label) in df.iterrows()]
-
-    frames = segments2frames(segments)
-    indexes = np.concatenate(indexes)
-
-    s = pd.Series(frames, index=indexes)
-
-    s_formatted = s.reindex(np.arange(s.index[-1]), fill_value="")
-
-    return s_formatted
