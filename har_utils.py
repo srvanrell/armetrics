@@ -468,11 +468,15 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     """
     n_radial = len(radial_labels)
     theta = radar_factory(n_radial, frame='polygon')
+    theta += np.pi / 12
 
     fig, axes = plt.subplots(figsize=(7, 7), nrows=1, ncols=1,
                              subplot_kw=dict(projection='radar'))
 
-    colors = ['b', 'r', 'g', 'y', 'm']
+    half_axis = [(theta[0]-np.pi/12), *theta[:6], (theta[5]+np.pi/12)]
+    half_circle = [1] * 8
+
+    axes.fill(half_axis, half_circle, facecolor="grey", alpha=0.25)  # Fill the polygon
     colors = ["C%d" % i for i in range(len(case_labels))]
     axes.set_rgrids([0.2, 0.4, 0.6, 0.8])
     axes.set_title(title, weight='bold', position=(0.5, 1.1),
