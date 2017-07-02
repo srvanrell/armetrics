@@ -473,7 +473,7 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     fig, axes = plt.subplots(figsize=(7, 7), nrows=1, ncols=1,
                              subplot_kw=dict(projection='radar'))
 
-    half_axis = [(theta[0]-np.pi/12), *theta[:6], (theta[5]+np.pi/12)]
+    half_axis = np.concatenate(([theta[0]-np.pi/12], theta[:6], [theta[5]+np.pi/12]))
     half_circle = [1] * 8
 
     axes.fill(half_axis, half_circle, facecolor="grey", alpha=0.25)  # Fill the polygon
