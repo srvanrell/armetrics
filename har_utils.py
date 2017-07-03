@@ -296,6 +296,12 @@ def events_summary(scored_true_events, scored_pred_events, normalize=True):
         summary["event_precision"] = np.nan
         summary["ins_rate"] = np.nan
 
+    if summary["event_recall"] > 0 and summary["event_precision"] > 0:
+        summary["event_f1score"] = 2 * summary["event_recall"] * summary["event_precision"] / (
+            summary["event_recall"] + summary["event_precision"])
+    else:
+        summary["event_f1score"] = np.nan
+
     return summary
 
 
@@ -331,6 +337,12 @@ def frames_summary(scored_frames, normalize=True):
         summary["frame_recall"] = 1.0 * summary["tp"] / (summary["tp"] + summary["fn"])
     else:
         summary["frame_recall"] = np.nan
+
+    if summary["frame_recall"] > 0 and summary["frame_precision"] > 0:
+        summary["frame_f1score"] = 2 * summary["frame_recall"] * summary["frame_precision"] / (
+            summary["frame_recall"] + summary["frame_precision"])
+    else:
+        summary["frame_f1score"] = np.nan
 
     if normalize:
         # Normalized positives frame metrics
@@ -369,7 +381,7 @@ def get_scores(y_true_bin, y_pred_bin):
 
 
 # TODO test this function in an experiment
-def get_sessions_scores(ytest_by_session, ypred_by_session, classes_of_interest, average_mode="samples"):
+def get_sessions_scores(ytest_by_session, ypred_by_session, classes_of_interest):
     """ (NOT IMPLEMENTED) average_mode should control if any average should be done (macro, micro, samples, ...).
     Open discussion involves if averaging should be done across sessions and/or across activities.
     """
@@ -559,6 +571,7 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
     case_data = []
     matching_time_mean = []
     matching_time_error = []
+    to_print = []
     for summary, lab in zip(summaries, labels):
         summary_mean = summary.mean()
         summary_error = summary.std()
@@ -574,6 +587,10 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
         matching_time_mean.append(summary_mean.matching_time)
         matching_time_error.append(summary_error.matching_time)
 
+        cropped_summary = summary[["frame_f1score", "event_f1score"]]
+        to_print.append(str(pd.concat([cropped_summary.mean(), cropped_summary.std()],
+                                      axis=1, keys=["mean", "std"]).T))
+
     spider_plot(title=title,
                 radial_labels=["frame recall", "frame precision",
                                "1-fr_frag rate", "1-fr_merge rate",
@@ -585,10 +602,10 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                 case_data=case_data,
                 case_labels=labels)
 
-    plot_matching_time(matching_time_mean, labels, errors=matching_time_error)
+    plot_matching_time(matching_time_mean, labels, errors=matching_time_error, text_right=to_print)
 
 
-def plot_matching_time(means, labels, errors=None):
+def plot_matching_time(means, labels, errors=None, text_right=None):
     val = means  # the bar lengths
     pos = np.arange(len(labels)) + .5  # the bar centers on the y axis
 
@@ -600,5 +617,9 @@ def plot_matching_time(means, labels, errors=None):
     plt.yticks(pos, labels)
     plt.gca().invert_yaxis()
     plt.xlabel('Predicted_time/True_time')
+
+    if text_right:
+        for txt, p in zip(text_right, pos):
+            plt.text(plt.gca().get_xlim()[1]+0.1, p+0.25, txt)
 
     plt.show()
