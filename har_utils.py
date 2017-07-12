@@ -504,63 +504,6 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     plt.show()
 
 
-def spider_summaries(frame_summaries, event_summaries, labels):
-    for act in frame_summaries[0].keys():
-        case_data = []
-        to_print = []
-        for fr_summary, ev_summary, lab in zip(frame_summaries, event_summaries, labels):
-            # Frame based measures
-            tp_frames = fr_summary[act]["tp"]
-            fn_frames = sum(fr_summary[act][l] for l in ["f", "d", "ua", "uz"])
-            fp_frames = sum(fr_summary[act][l] for l in ["i", "oa", "oz", "m"])
-
-            recall_fr = 1.0 * tp_frames / (tp_frames + fn_frames)
-            precision_fr = 1.0 * tp_frames / (tp_frames + fp_frames)
-            total_time_accuracy = 0.5 * (tp_frames + fp_frames) / (tp_frames + fn_frames)
-
-            # Frame based time measures
-            positive_frames = tp_frames + fn_frames
-            underfill_frames = (fr_summary[act]["ua"] + fr_summary[act]["uz"])
-            overfill_frames = (fr_summary[act]["oa"] + fr_summary[act]["oz"])
-
-            underfill_rate = 1.0 * underfill_frames / positive_frames
-            overfill_rate = 1.0 * overfill_frames / positive_frames
-
-            # Event based measures
-            tp_events = ev_summary[act]["C"]
-            ground_events = sum(ev_summary[act][l] for l in ["C", "F", "FM", "M", "D"])
-            output_events = sum(ev_summary[act][l] for l in ["C'", "F'", "FM'", "M'", "I'"])
-
-            recall_ev = 1.0 * tp_events / ground_events  # Esta bien la definicion?
-            precision_ev = 1.0 * tp_events / output_events  # Esta bien la definicion?
-
-            frag_rate = 1.0 * sum(ev_summary[act][l] for l in ["F", "FM"]) / ground_events
-            merge_rate = 1.0 * sum(ev_summary[act][l] for l in ["M", "FM"]) / ground_events
-            del_rate = 1.0 * sum(ev_summary[act][l] for l in ["D"]) / ground_events
-            ins_rate = 1.0 * sum(ev_summary[act][l] for l in ["I'"]) / output_events
-
-            # Saving data to plot
-            case_data.append([recall_fr, precision_fr,
-                              1 - underfill_rate, 1 - overfill_rate, total_time_accuracy,
-                              recall_ev, precision_ev,
-                              1 - frag_rate, 1 - merge_rate,
-                              1 - del_rate, 1 - ins_rate])
-
-            to_print.append("Global matching time (%s): %0.2f" % (lab, 2.0 * total_time_accuracy))
-
-        spider_plot(title=act,
-                    radial_labels=["frame recall", "frame precision",
-                                   "1 - underfill rate", "1 - overfill rate", "global matching time/2",
-                                   "event recall", "event precision",
-                                   "1-frag rate", "1-merge rate",
-                                   "1-del rate", "1-ins rate"],
-                    case_data=case_data,
-                    case_labels=labels)
-
-        for s in to_print:
-            print(s)
-
-
 def spider_df_summaries(summaries_by_activity, labels):
     for act in summaries_by_activity[0].mean().index.tolist():
         single_spider_df_summaries([s.get_group(act) for s in summaries_by_activity],
@@ -610,7 +553,8 @@ def plot_matching_time(means, labels, errors=None, text_right=None):
     pos = np.arange(len(labels)) + .5  # the bar centers on the y axis
 
     plt.figure()
-    colors = ['b', 'r', 'g', 'y', 'm']
+    if len(labels) > 10:
+        print("Be careful! I cannot plot more than 10 labels.")
     colors = ["C%d" % i for i in range(len(labels))]
     plt.barh(pos, val, align='center', xerr=errors, height=0.7, color=colors)
     plt.axvline(x=1, color="k", linestyle="dashed")
