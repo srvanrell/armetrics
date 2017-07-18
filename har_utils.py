@@ -527,8 +527,8 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                           1 - summary_mean.frag_rate, 1 - summary_mean.merge_rate,
                           1 - summary_mean.del_rate, 1 - summary_mean.ins_rate])
 
-        matching_time_mean.append(summary_mean.matching_time)
-        matching_time_error.append(summary_error.matching_time)
+        matching_time_mean.append((summary_mean.matching_time - 1)*100.0)
+        matching_time_error.append(summary_error.matching_time * 100)
 
         cropped_summary = summary[["frame_f1score", "event_f1score"]]
         to_print.append(str(pd.concat([cropped_summary.mean(), cropped_summary.std()],
@@ -557,10 +557,12 @@ def plot_matching_time(means, labels, errors=None, text_right=None):
         print("Be careful! I cannot plot more than 10 labels.")
     colors = ["C%d" % i for i in range(len(labels))]
     plt.barh(pos, val, align='center', xerr=errors, height=0.7, color=colors)
-    plt.axvline(x=1, color="k", linestyle="dashed")
+    plt.axvline(x=0, color="k", linestyle="dashed")
     plt.yticks(pos, labels)
     plt.gca().invert_yaxis()
-    plt.xlabel('Predicted_time/True_time')
+    plt.xlabel('Time Prediction Error (%)')
+    maxlim = max([10, abs(max(val))+max(errors), abs(min(val))+max(errors)])  # Defines xlim
+    plt.xlim(-maxlim*1.1, maxlim*1.1)
 
     if text_right:
         for txt, p in zip(text_right, pos):
