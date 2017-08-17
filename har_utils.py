@@ -535,13 +535,12 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                                       axis=1, keys=["mean", "std"]).T))
 
     spider_plot(title=title,
-                radial_labels=["frame recall", "frame precision",
-                               "1-fr_frag rate", "1-fr_merge rate",
-                               "1-fr_del rate", "1-fr_ins rate",
-                               # "1 - underfill rate", "1 - overfill rate",
-                               "event recall", "event precision",
-                               "1-ev_frag rate", "1-ev_merge rate",
-                               "1-ev_del rate", "1-ev_ins rate"],
+                radial_labels=["Frame Recall", "Frame Precision",
+                               "1-Frame_frag rate", "1-Frame_merge rate",
+                               "1-Frame_del rate", "1-Frame_ins rate",
+                               "Block Recall", "Block Precision",
+                               "1-Block_frag rate", "1-Block_merge rate",
+                               "1-Block_del rate", "1-Block_ins rate"],
                 case_data=case_data,
                 case_labels=labels)
 
