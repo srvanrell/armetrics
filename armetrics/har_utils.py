@@ -1,8 +1,9 @@
-import numpy as np
-from .models import Event, Segment
 import matplotlib.pyplot as plt
-from .radar_chart import radar_factory
+import numpy as np
 import pandas as pd
+
+from armetrics.models import Event, Segment
+from armetrics.radar_chart import radar_factory
 
 
 def frames2segments(y_true, y_pred, advanced_labels=True):

@@ -1,5 +1,5 @@
 
-from har_utils import *
+from armetrics.har_utils import *
 
 ground_filename = "data/ground.txt"
 prediction_filename = "data/prediction.txt"

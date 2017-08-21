@@ -1,4 +1,4 @@
-from har_utils import *
+from armetrics.har_utils import *
 
 # Example taken from Figure 2 of the paper
 ground_ev = [[1, 6],
@@ -45,7 +45,6 @@ print(frames_summary(scored_frames))
 # Loading a label from hasc database
 
 import pandas as pd
-import numpy as np
 import utils
 
 # features_folder = 'features/'

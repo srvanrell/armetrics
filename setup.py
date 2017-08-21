@@ -8,4 +8,7 @@ setup(name='armetrics',
       author_email='srvanrell@gmail.com',
       license='MIT',
       packages=['armetrics'],
-      zip_safe=False)
+      zip_safe=False,
+      install_requires=['matplotlib',
+                        'numpy',
+                        'pandas'])
