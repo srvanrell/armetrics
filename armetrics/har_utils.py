@@ -468,6 +468,8 @@ def plot_event_bars(dic_summary_of_events):
 
     plt.show()
 
+import matplotlib.patches as mpatches
+
 
 def spider_plot(title, radial_labels, case_data, case_labels):
     """
@@ -483,7 +485,7 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     theta = radar_factory(n_radial, frame='polygon')
     theta += np.pi / 12
 
-    fig, axes = plt.subplots(figsize=(7, 7), nrows=1, ncols=1,
+    fig, axes = plt.subplots(figsize=(9, 7), nrows=1, ncols=1,
                              subplot_kw=dict(projection='radar'))
 
     half_axis = np.concatenate(([theta[0]-np.pi/12], theta[:6], [theta[5]+np.pi/12]))
@@ -500,8 +502,18 @@ def spider_plot(title, radial_labels, case_data, case_labels):
         # axes.fill(theta, d, facecolor=color, alpha=0.25)  # Fill the polygon
     axes.set_varlabels(radial_labels)
 
-    axes.legend(case_labels, loc=(0.9, .95), labelspacing=0.1, fontsize='small')
+    # Block- and frame-based legend
+    frame_patch = mpatches.Patch(facecolor='lightgrey', edgecolor='k', label='Frame-based metrics')
+    block_patch = mpatches.Patch(facecolor='white', edgecolor='k', label='Block-based metrics')
+    first_legend = plt.legend(handles=[frame_patch, block_patch], ncol=2, mode="expand",
+                              bbox_to_anchor=(-0.1, 0, 1.2, 0.12), loc=3, borderaxespad=-2.5,
+                              framealpha=0)
+    plt.gca().add_artist(first_legend)
 
+    axes.legend(case_labels, bbox_to_anchor=(1.3, 1),  #loc=(0.9, .95),
+                loc=1, labelspacing=0.5, fontsize='small')
+
+    plt.tight_layout(pad=2.5)
     plt.show()
 
 
@@ -524,9 +536,15 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                           1 - summary_mean.f_rate, 1 - summary_mean.m_rate,
                           1 - summary_mean.d_rate, 1 - summary_mean.i_rate,
                           # 1 - summary_mean.u_rate, 1 - summary_mean.o_rate[act],
-                          summary_mean.event_recall, summary_mean.event_precision,
-                          1 - summary_mean.frag_rate, 1 - summary_mean.merge_rate,
-                          1 - summary_mean.del_rate, 1 - summary_mean.ins_rate])
+                          #
+                          # summary_mean.event_recall, summary_mean.event_precision,
+                          # 1 - summary_mean.frag_rate, 1 - summary_mean.merge_rate,
+                          # 1 - summary_mean.del_rate, 1 - summary_mean.ins_rate])
+                          #
+                          1 - summary_mean.ins_rate, 1 - summary_mean.del_rate,
+                          1 - summary_mean.merge_rate, 1 - summary_mean.frag_rate,
+                          summary_mean.event_precision, summary_mean.event_recall
+                         ])
 
         matching_time_mean.append((summary_mean.matching_time - 1)*100.0)
         matching_time_error.append(summary_error.matching_time * 100)
@@ -536,12 +554,16 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                                       axis=1, keys=["mean", "std"]).T))
 
     spider_plot(title=title,
-                radial_labels=["Frame Recall", "Frame Precision",
-                               "1-Frame_frag rate", "1-Frame_merge rate",
-                               "1-Frame_del rate", "1-Frame_ins rate",
-                               "Block Recall", "Block Precision",
-                               "1-Block_frag rate", "1-Block_merge rate",
-                               "1-Block_del rate", "1-Block_ins rate"],
+                radial_labels=["Recall", "Precision",  # Frame-based metrics
+                               "1-Frag. rate", "1-Merg. rate",
+                               "1-Del. rate", "1-Ins. rate",
+                               # "Recall", "Precision",  # Frame-based metrics
+                               # "1-frag. rate", "1-merg. rate",
+                               # "1-del. rate", "1-ins. rate"],
+                               "1-Ins. rate", "1-Del. rate",  # Frame-based metrics
+                               "1-Merg. rate", "1-Frag. rate",
+                               "Precision", "Recall"
+                               ],
                 case_data=case_data,
                 case_labels=labels)
 
