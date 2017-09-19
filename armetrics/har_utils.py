@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 
@@ -468,8 +469,6 @@ def plot_event_bars(dic_summary_of_events):
 
     plt.show()
 
-import matplotlib.patches as mpatches
-
 
 def spider_plot(title, radial_labels, case_data, case_labels):
     """
@@ -510,7 +509,7 @@ def spider_plot(title, radial_labels, case_data, case_labels):
                               framealpha=0)
     plt.gca().add_artist(first_legend)
 
-    axes.legend(case_labels, bbox_to_anchor=(1.3, 1),  #loc=(0.9, .95),
+    axes.legend(case_labels, bbox_to_anchor=(1.3, 1),  # loc=(0.9, .95),
                 loc=1, labelspacing=0.5, fontsize='small')
 
     plt.tight_layout(pad=2.5)
@@ -521,6 +520,8 @@ def spider_df_summaries(summaries_by_activity, labels):
     for act in summaries_by_activity[0].mean().index.tolist():
         single_spider_df_summaries([s.get_group(act) for s in summaries_by_activity],
                                    labels, act)
+        single_violinplot_df_summaries([s.get_group(act) for s in summaries_by_activity],
+                                       labels, act)
 
 
 def single_spider_df_summaries(summaries, labels, title="Titulo"):
@@ -567,7 +568,27 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                 case_data=case_data,
                 case_labels=labels)
 
-    plot_matching_time(matching_time_mean, labels, errors=matching_time_error, text_right=to_print)
+    # plot_matching_time(matching_time_mean, labels, errors=matching_time_error, text_right=to_print)
+
+
+def single_violinplot_df_summaries(summaries, labels, act):
+    plt.figure()
+    pos = np.arange(len(labels)) + .5  # the bar centers on the y axis
+
+    if len(labels) > 10:
+        print("Be careful! I cannot plot more than 10 labels.")
+    colors = ["C%d" % i for i in range(len(labels))]
+
+    for summary, lab, p in zip(summaries, labels, pos):
+        time_errors = 100.0 * (summary.matching_time.as_matrix() - 1)
+        print(time_errors, lab)
+        plt.violinplot(time_errors[np.isfinite(time_errors)], [p], points=50, vert=False, widths=0.5,
+                       showmeans=True, showextrema=True, bw_method='silverman')
+        plt.axvline(x=0, color="k", linestyle="dashed")
+        plt.yticks(pos, labels)
+        plt.gca().invert_yaxis()
+        plt.xlabel('Time Prediction Error (%)')
+    plt.show()
 
 
 def plot_matching_time(means, labels, errors=None, text_right=None):
