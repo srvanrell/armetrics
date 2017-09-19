@@ -526,12 +526,9 @@ def spider_df_summaries(summaries_by_activity, labels):
 
 def single_spider_df_summaries(summaries, labels, title="Titulo"):
     case_data = []
-    matching_time_mean = []
-    matching_time_error = []
-    to_print = []
+    print("Label\t\tFrame-based\t\tBlock-based")
     for summary, lab in zip(summaries, labels):
         summary_mean = summary.mean()
-        summary_error = summary.std()
         # Saving data to plot
         case_data.append([summary_mean.frame_recall, summary_mean.frame_precision,
                           1 - summary_mean.f_rate, 1 - summary_mean.m_rate,
@@ -545,14 +542,11 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                           1 - summary_mean.ins_rate, 1 - summary_mean.del_rate,
                           1 - summary_mean.merge_rate, 1 - summary_mean.frag_rate,
                           summary_mean.event_precision, summary_mean.event_recall
-                         ])
+                          ])
 
-        matching_time_mean.append((summary_mean.matching_time - 1)*100.0)
-        matching_time_error.append(summary_error.matching_time * 100)
-
-        cropped_summary = summary[["frame_f1score", "event_f1score"]]
-        to_print.append(str(pd.concat([cropped_summary.mean(), cropped_summary.std()],
-                                      axis=1, keys=["mean", "std"]).T))
+        print(lab + "\t\t"
+              "%0.3f (+-%0.3f)\t" % (summary.frame_f1score.mean(), summary.frame_f1score.std()) +
+              "%0.3f (+-%0.3f)\t\t" % (summary.event_f1score.mean(), summary.event_f1score.std()))
 
     spider_plot(title=title,
                 radial_labels=["Recall", "Precision",  # Frame-based metrics
@@ -567,8 +561,6 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                                ],
                 case_data=case_data,
                 case_labels=labels)
-
-    # plot_matching_time(matching_time_mean, labels, errors=matching_time_error, text_right=to_print)
 
 
 def single_violinplot_df_summaries(summaries, labels, act):
@@ -588,27 +580,4 @@ def single_violinplot_df_summaries(summaries, labels, act):
         plt.yticks(pos, labels)
         plt.gca().invert_yaxis()
         plt.xlabel('Time Prediction Error (%)')
-    plt.show()
-
-
-def plot_matching_time(means, labels, errors=None, text_right=None):
-    val = means  # the bar lengths
-    pos = np.arange(len(labels)) + .5  # the bar centers on the y axis
-
-    plt.figure()
-    if len(labels) > 10:
-        print("Be careful! I cannot plot more than 10 labels.")
-    colors = ["C%d" % i for i in range(len(labels))]
-    plt.barh(pos, val, align='center', xerr=errors, height=0.7, color=colors)
-    plt.axvline(x=0, color="k", linestyle="dashed")
-    plt.yticks(pos, labels)
-    plt.gca().invert_yaxis()
-    plt.xlabel('Time Prediction Error (%)')
-    maxlim = max([10, abs(max(val))+max(errors), abs(min(val))+max(errors)])  # Defines xlim
-    plt.xlim(-maxlim*1.1, maxlim*1.1)
-
-    if text_right:
-        for txt, p in zip(text_right, pos):
-            plt.text(plt.gca().get_xlim()[1]+0.1, p+0.25, txt)
-
     plt.show()
