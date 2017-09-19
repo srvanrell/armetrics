@@ -504,13 +504,13 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     # Block- and frame-based legend
     frame_patch = mpatches.Patch(facecolor='lightgrey', edgecolor='k', label='Frame-based metrics')
     block_patch = mpatches.Patch(facecolor='white', edgecolor='k', label='Block-based metrics')
-    first_legend = plt.legend(handles=[frame_patch, block_patch], ncol=1, mode="expand",
-                              bbox_to_anchor=(-0.15, 0.98, 0.5, 0.12), loc=3, borderaxespad=0.0,
+    first_legend = plt.legend(handles=[frame_patch, block_patch], ncol=1,
+                              bbox_to_anchor=(-0.15, 1.05), loc=2, borderaxespad=0.0,
                               framealpha=0)
     plt.gca().add_artist(first_legend)
 
-    axes.legend(case_labels, bbox_to_anchor=(1.15, 0.98),  # loc=(0.9, .95),
-                loc=3, labelspacing=0.5, fontsize='small')
+    axes.legend(case_labels, bbox_to_anchor=(1.15, 1.05),  # loc=(0.9, .95),
+                loc=2, labelspacing=0.5, fontsize='small')
 
     plt.tight_layout(pad=2.5)
     plt.show()
