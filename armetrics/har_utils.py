@@ -568,22 +568,28 @@ def single_violinplot_df_summaries(summaries, labels, act):
         print("Be careful! I cannot plot more than 10 labels.")
     colors = ["C%d" % i for i in range(len(labels))]
 
+    to_print = []
     for summary, lab, p in zip(summaries, labels, pos):
         time_errors = 100.0 * (summary.matching_time.as_matrix() - 1)
-        print(time_errors, lab)
+        to_print.append(" ".join(["%.2f" % i for i in time_errors]) +
+                        "\t" + lab + "%.2f" % np.mean(time_errors))
         plt.violinplot(time_errors[np.isfinite(time_errors)], [p], points=50, vert=False, widths=0.5,
                        showmeans=True, showextrema=True, bw_method='silverman')
-        plt.axvline(x=0, color="k", linestyle="dashed")
-        plt.yticks(pos, labels)
-        plt.gca().invert_yaxis()
-        plt.xlabel('Time Prediction Error (%)')
+
+    plt.axvline(x=0, color="k", linestyle="dashed")
+    plt.yticks(pos, labels)
+    plt.gca().invert_yaxis()
+    plt.xlabel('Time Prediction Error (%)')
     plt.show()
+
+    print("Time prediction error per signal")
+    for row in to_print:
+        print(row)
 
 
 def single_print_f1scores_df_summaries(summaries, labels, act):
     print("Label\t\tFrame-based\t\tBlock-based")
     for summary, lab in zip(summaries, labels):
-        summary_mean = summary.mean()
         print(lab + "\t"
               "%0.3f (+-%0.3f)\t" % (summary.frame_f1score.mean(), summary.frame_f1score.std()) +
               "%0.3f (+-%0.3f)" % (summary.event_f1score.mean(), summary.event_f1score.std())
