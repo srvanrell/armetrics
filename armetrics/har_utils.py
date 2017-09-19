@@ -505,7 +505,7 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     frame_patch = mpatches.Patch(facecolor='lightgrey', edgecolor='k', label='Frame-based metrics')
     block_patch = mpatches.Patch(facecolor='white', edgecolor='k', label='Block-based metrics')
     first_legend = plt.legend(handles=[frame_patch, block_patch], ncol=1,
-                              bbox_to_anchor=(1.15, 0.05), loc=2, borderaxespad=0.0,
+                              bbox_to_anchor=(-0.15, 0.0), loc=2, borderaxespad=0.0,
                               framealpha=0)
     plt.gca().add_artist(first_legend)
 
