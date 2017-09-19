@@ -572,7 +572,7 @@ def single_violinplot_df_summaries(summaries, labels, act):
     for summary, lab, p in zip(summaries, labels, pos):
         time_errors = 100.0 * (summary.matching_time.as_matrix() - 1)
         to_print.append(" ".join(["%.2f" % i for i in time_errors]) +
-                        "\t" + lab + "%.2f" % np.mean(time_errors))
+                        "\t(%.2f)\t" % np.mean(time_errors) + lab)
         plt.violinplot(time_errors[np.isfinite(time_errors)], [p], points=50, vert=False, widths=0.5,
                        showmeans=True, showextrema=True, bw_method='silverman')
 
@@ -591,6 +591,6 @@ def single_print_f1scores_df_summaries(summaries, labels, act):
     print("Label\t\tFrame-based\t\tBlock-based")
     for summary, lab in zip(summaries, labels):
         print(lab + "\t"
-              "%0.3f (+-%0.3f)\t" % (summary.frame_f1score.mean(), summary.frame_f1score.std()) +
+              "%0.3f (+-%0.3f)\t\t" % (summary.frame_f1score.mean(), summary.frame_f1score.std()) +
               "%0.3f (+-%0.3f)" % (summary.event_f1score.mean(), summary.event_f1score.std())
               )
