@@ -504,13 +504,13 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     # Block- and frame-based legend
     frame_patch = mpatches.Patch(facecolor='lightgrey', edgecolor='k', label='Frame-based metrics')
     block_patch = mpatches.Patch(facecolor='white', edgecolor='k', label='Block-based metrics')
-    first_legend = plt.legend(handles=[frame_patch, block_patch], ncol=2, mode="expand",
-                              bbox_to_anchor=(-0.1, 0, 1.2, 0.12), loc=3, borderaxespad=-2.5,
+    first_legend = plt.legend(handles=[frame_patch, block_patch], ncol=1, mode="expand",
+                              bbox_to_anchor=(-0.15, 0.98, 0.5, 0.12), loc=3, borderaxespad=0.0,
                               framealpha=0)
     plt.gca().add_artist(first_legend)
 
-    axes.legend(case_labels, bbox_to_anchor=(1.3, 1),  # loc=(0.9, .95),
-                loc=1, labelspacing=0.5, fontsize='small')
+    axes.legend(case_labels, bbox_to_anchor=(1.15, 0.98),  # loc=(0.9, .95),
+                loc=3, labelspacing=0.5, fontsize='small')
 
     plt.tight_layout(pad=2.5)
     plt.show()
@@ -522,11 +522,12 @@ def spider_df_summaries(summaries_by_activity, labels):
                                    labels, act)
         single_violinplot_df_summaries([s.get_group(act) for s in summaries_by_activity],
                                        labels, act)
+        single_print_f1scores_df_summaries([s.get_group(act) for s in summaries_by_activity],
+                                           labels, act)
 
 
 def single_spider_df_summaries(summaries, labels, title="Titulo"):
     case_data = []
-    print("Label\t\tFrame-based\t\tBlock-based")
     for summary, lab in zip(summaries, labels):
         summary_mean = summary.mean()
         # Saving data to plot
@@ -543,10 +544,6 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                           1 - summary_mean.merge_rate, 1 - summary_mean.frag_rate,
                           summary_mean.event_precision, summary_mean.event_recall
                           ])
-
-        print(lab + "\t\t"
-              "%0.3f (+-%0.3f)\t" % (summary.frame_f1score.mean(), summary.frame_f1score.std()) +
-              "%0.3f (+-%0.3f)\t\t" % (summary.event_f1score.mean(), summary.event_f1score.std()))
 
     spider_plot(title=title,
                 radial_labels=["Recall", "Precision",  # Frame-based metrics
@@ -581,3 +578,13 @@ def single_violinplot_df_summaries(summaries, labels, act):
         plt.gca().invert_yaxis()
         plt.xlabel('Time Prediction Error (%)')
     plt.show()
+
+
+def single_print_f1scores_df_summaries(summaries, labels, act):
+    print("Label\t\tFrame-based\t\tBlock-based")
+    for summary, lab in zip(summaries, labels):
+        summary_mean = summary.mean()
+        print(lab + "\t"
+              "%0.3f (+-%0.3f)\t" % (summary.frame_f1score.mean(), summary.frame_f1score.std()) +
+              "%0.3f (+-%0.3f)" % (summary.event_f1score.mean(), summary.event_f1score.std())
+              )
