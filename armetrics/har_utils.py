@@ -536,26 +536,18 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                           1 - summary_mean.d_rate, 1 - summary_mean.i_rate,
                           # 1 - summary_mean.u_rate, 1 - summary_mean.o_rate[act],
                           #
-                          # summary_mean.event_recall, summary_mean.event_precision,
-                          # 1 - summary_mean.frag_rate, 1 - summary_mean.merge_rate,
-                          # 1 - summary_mean.del_rate, 1 - summary_mean.ins_rate])
-                          #
                           1 - summary_mean.ins_rate, 1 - summary_mean.del_rate,
                           1 - summary_mean.merge_rate, 1 - summary_mean.frag_rate,
                           summary_mean.event_precision, summary_mean.event_recall
                           ])
 
     spider_plot(title=title,
-                radial_labels=["Recall", "Precision",  # Frame-based metrics
-                               "1-Frag. rate", "1-Merg. rate",
-                               "1-Del. rate", "1-Ins. rate",
-                               # "Recall", "Precision",  # Frame-based metrics
-                               # "1-frag. rate", "1-merg. rate",
-                               # "1-del. rate", "1-ins. rate"],
-                               "1-Ins. rate", "1-Del. rate",  # Frame-based metrics
-                               "1-Merg. rate", "1-Frag. rate",
-                               "Precision", "Recall"
-                               ],
+                radial_labels=[
+                    # Frame-based metrics
+                    "Recall", "Precision", "1-Frag. rate", "1-Merg. rate", "1-Del. rate", "1-Ins. rate",
+                    # Frame-based metrics
+                    "1-Ins. rate", "1-Del. rate", "1-Merg. rate", "1-Frag. rate", "Precision", "Recall"
+                ],
                 case_data=case_data,
                 case_labels=labels)
 
