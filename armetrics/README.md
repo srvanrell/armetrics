@@ -8,4 +8,4 @@ J. A. Ward, P. Lukowicz, and H. W. Gellersen, “Performance Metrics for Activit
 
 ## Local installation
 
-sudo pip3 install -U .
+sudo pip3 install .
