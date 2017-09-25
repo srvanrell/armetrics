@@ -361,10 +361,11 @@ def frames_summary(scored_frames, normalize=True):
                 summary[lab + "_rate"] = np.nan
 
     # FIXME Chequear que este funcionando bien cuando no hay etiquetas positivas en la referencia
-    if summary["tp"] + summary["fn"] > 0:
-        summary["matching_time"] = summary["output_positives"] / max(1, summary["tp"] + summary["fn"])  # Matching time
-    else:
-        summary["matching_time"] = np.nan
+    summary["raw_time_error"] = summary["output_positives"] - summary["ground_positives"]
+    # if summary["tp"] + summary["fn"] > 0:
+    summary["matching_time"] = summary["output_positives"] / max(0.001, summary["tp"] + summary["fn"])  # Matching time
+    # else:
+    #     summary["matching_time"] = np.nan
 
     return summary
 
@@ -522,6 +523,8 @@ def spider_df_summaries(summaries_by_activity, labels):
                                    labels, act)
         single_violinplot_df_summaries([s.get_group(act) for s in summaries_by_activity],
                                        labels, act)
+        single_violinplot_raw_errors_df_summaries([s.get_group(act) for s in summaries_by_activity],
+                                       labels, act)
         single_print_f1scores_df_summaries([s.get_group(act) for s in summaries_by_activity],
                                            labels, act)
 
@@ -572,6 +575,33 @@ def single_violinplot_df_summaries(summaries, labels, act):
     plt.yticks(pos, labels)
     plt.gca().invert_yaxis()
     plt.xlabel('Time Prediction Error (%)')
+    plt.show()
+
+    print("Time prediction error per signal")
+    for row in to_print:
+        print(row)
+
+
+def single_violinplot_raw_errors_df_summaries(summaries, labels, act):
+    plt.figure()
+    pos = np.arange(len(labels)) + .5  # the bar centers on the y axis
+
+    if len(labels) > 10:
+        print("Be careful! I cannot plot more than 10 labels.")
+    colors = ["C%d" % i for i in range(len(labels))]
+
+    to_print = []
+    for summary, lab, p in zip(summaries, labels, pos):
+        time_errors = summary.raw_time_error.as_matrix() / 60.0
+        to_print.append(" ".join(["%.2f" % i for i in time_errors]) +
+                        "\t(%.2f)\t" % np.mean(time_errors) + lab)
+        plt.violinplot(time_errors[np.isfinite(time_errors)], [p], points=50, vert=False, widths=0.65,
+                       showmeans=True, showextrema=True, bw_method='silverman')
+
+    plt.axvline(x=0, color="k", linestyle="dashed")
+    plt.yticks(pos, labels)
+    plt.gca().invert_yaxis()
+    plt.xlabel('Time Prediction Error (minutes)')
     plt.show()
 
     print("Time prediction error per signal")
