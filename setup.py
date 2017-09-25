@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='armetrics',
-      version='0.1.2',
+      version='0.1.3',
       description='Continuous Activity Recognition Metrics based on (Ward et al, 2011)',
       url='http://github.com/srvanrell/armetrics',
       author='srvanrell',
@@ -9,6 +9,6 @@ setup(name='armetrics',
       license='MIT',
       packages=['armetrics'],
       zip_safe=False,
-      install_requires=['matplotlib',
-                        'numpy',
-                        'pandas'])
+      install_requires=['matplotlib>=2.0.1',
+                        'numpy>=1.13.1',
+                        'pandas>=0.20.1'])

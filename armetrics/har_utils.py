@@ -363,7 +363,7 @@ def frames_summary(scored_frames, normalize=True):
     # FIXME Chequear que este funcionando bien cuando no hay etiquetas positivas en la referencia
     summary["raw_time_error"] = summary["output_positives"] - summary["ground_positives"]
     # if summary["tp"] + summary["fn"] > 0:
-    summary["matching_time"] = summary["output_positives"] / max(0.001, summary["tp"] + summary["fn"])  # Matching time
+    summary["matching_time"] = summary["output_positives"] / max(1, summary["tp"] + summary["fn"])  # Matching time
     # else:
     #     summary["matching_time"] = np.nan
 
@@ -521,11 +521,11 @@ def spider_df_summaries(summaries_by_activity, labels):
     for act in summaries_by_activity[0].mean().index.tolist():
         single_spider_df_summaries([s.get_group(act) for s in summaries_by_activity],
                                    labels, act)
-        single_violinplot_df_summaries([s.get_group(act) for s in summaries_by_activity],
-                                       labels, act)
-        single_violinplot_raw_errors_df_summaries([s.get_group(act) for s in summaries_by_activity],
-                                       labels, act)
-        single_print_f1scores_df_summaries([s.get_group(act) for s in summaries_by_activity],
+        print_f1scores_df_summaries([s.get_group(act) for s in summaries_by_activity],
+                                    labels, act)
+        violinplot_relative_errors_df_summaries([s.get_group(act) for s in summaries_by_activity],
+                                                labels, act)
+        violinplot_raw_errors_df_summaries([s.get_group(act) for s in summaries_by_activity],
                                            labels, act)
 
 
@@ -555,7 +555,7 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                 case_labels=labels)
 
 
-def single_violinplot_df_summaries(summaries, labels, act):
+def violinplot_relative_errors_df_summaries(summaries, labels, act):
     plt.figure()
     pos = np.arange(len(labels)) + .5  # the bar centers on the y axis
 
@@ -582,7 +582,7 @@ def single_violinplot_df_summaries(summaries, labels, act):
         print(row)
 
 
-def single_violinplot_raw_errors_df_summaries(summaries, labels, act):
+def violinplot_raw_errors_df_summaries(summaries, labels, act):
     plt.figure()
     pos = np.arange(len(labels)) + .5  # the bar centers on the y axis
 
@@ -592,16 +592,16 @@ def single_violinplot_raw_errors_df_summaries(summaries, labels, act):
 
     to_print = []
     for summary, lab, p in zip(summaries, labels, pos):
-        time_errors = summary.raw_time_error.as_matrix() / 60.0
-        to_print.append(" ".join(["%.2f" % i for i in time_errors]) +
-                        "\t(%.2f)\t" % np.mean(time_errors) + lab)
-        plt.violinplot(time_errors[np.isfinite(time_errors)], [p], points=50, vert=False, widths=0.65,
+        minute_errors = summary.raw_time_error.as_matrix() / 60.0
+        to_print.append(" ".join(["%.2f" % i for i in minute_errors]) +
+                        "\t(%.2f)\t" % np.mean(minute_errors) + lab)
+        plt.violinplot(minute_errors[np.isfinite(minute_errors)], [p], points=50, vert=False, widths=0.65,
                        showmeans=True, showextrema=True, bw_method='silverman')
 
     plt.axvline(x=0, color="k", linestyle="dashed")
     plt.yticks(pos, labels)
     plt.gca().invert_yaxis()
-    plt.xlabel('Time Prediction Error (minutes)')
+    plt.xlabel('Time Prediction Error (minute)')
     plt.show()
 
     print("Time prediction error per signal")
@@ -609,10 +609,9 @@ def single_violinplot_raw_errors_df_summaries(summaries, labels, act):
         print(row)
 
 
-def single_print_f1scores_df_summaries(summaries, labels, act):
-    print("Label\t\tFrame-based\t\tBlock-based")
+def print_f1scores_df_summaries(summaries, labels, act):
+    print("Label".ljust(25) + "Frame-based f1score".ljust(25) + "Block-based f1score")
     for summary, lab in zip(summaries, labels):
-        print(lab + "\t"
-              "%0.3f (+-%0.3f)\t\t" % (summary.frame_f1score.mean(), summary.frame_f1score.std()) +
-              "%0.3f (+-%0.3f)" % (summary.event_f1score.mean(), summary.event_f1score.std())
-              )
+        frame_str = "%0.3f (+-%0.3f)" % (summary.frame_f1score.mean(), summary.frame_f1score.std())
+        event_str = "%0.3f (+-%0.3f)" % (summary.event_f1score.mean(), summary.event_f1score.std())
+        print(lab.ljust(25)[:25] + frame_str.ljust(25) + event_str)
