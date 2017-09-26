@@ -523,8 +523,8 @@ def spider_df_summaries(summaries_by_activity, labels):
                                    labels, act)
         print_f1scores_df_summaries([s.get_group(act) for s in summaries_by_activity],
                                     labels, act)
-        violinplot_relative_errors_df_summaries([s.get_group(act) for s in summaries_by_activity],
-                                                labels, act)
+        # violinplot_relative_errors_df_summaries([s.get_group(act) for s in summaries_by_activity],
+        #                                         labels, act)
         violinplot_raw_errors_df_summaries([s.get_group(act) for s in summaries_by_activity],
                                            labels, act)
 
@@ -594,9 +594,10 @@ def violinplot_raw_errors_df_summaries(summaries, labels, act):
     for summary, lab, p in zip(summaries, labels, pos):
         minute_errors = summary.raw_time_error.as_matrix() / 60.0
         to_print.append(" ".join(["%.2f" % i for i in minute_errors]) +
-                        "\t(%.2f)\t" % np.mean(minute_errors) + lab)
+                        "\t(%.2f)_mean\t" % np.mean(minute_errors) +
+                        "\t(%.2f)_median\t" % np.median(minute_errors) + lab)
         plt.violinplot(minute_errors[np.isfinite(minute_errors)], [p], points=50, vert=False, widths=0.65,
-                       showmeans=True, showextrema=True, bw_method='silverman')
+                       showmeans=False, showmedians=True, showextrema=True, bw_method='silverman')
 
     plt.axvline(x=0, color="k", linestyle="dashed")
     plt.yticks(pos, labels)
