@@ -555,6 +555,14 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                 case_labels=labels)
 
 
+def print_f1scores_df_summaries(summaries, labels, act):
+    print("Label".ljust(25) + "Frame-based f1score".ljust(25) + "Block-based f1score")
+    for summary, lab in zip(summaries, labels):
+        frame_str = "%0.3f (+-%0.3f)" % (summary.frame_f1score.mean(), summary.frame_f1score.std())
+        event_str = "%0.3f (+-%0.3f)" % (summary.event_f1score.mean(), summary.event_f1score.std())
+        print(lab.ljust(25)[:25] + frame_str.ljust(25) + event_str)
+
+
 def violinplot_relative_errors_df_summaries(summaries, labels, act):
     plt.figure()
     pos = np.arange(len(labels)) + .5  # the bar centers on the y axis
@@ -592,27 +600,19 @@ def violinplot_raw_errors_df_summaries(summaries, labels, act):
 
     to_print = []
     for summary, lab, p in zip(summaries, labels, pos):
-        minute_errors = summary.raw_time_error.as_matrix() / 60.0
-        to_print.append(" ".join(["%.2f" % i for i in minute_errors]) +
-                        "\t(%.2f)_mean\t" % np.mean(minute_errors) +
-                        "\t(%.2f)_median\t" % np.median(minute_errors) + lab)
-        plt.violinplot(minute_errors[np.isfinite(minute_errors)], [p], points=50, vert=False, widths=0.65,
+        errors = summary.raw_time_error.as_matrix()
+        to_print.append(" ".join(["%.2f" % i for i in errors]) +
+                        "\t(%.2f)_mean\t" % np.mean(errors) +
+                        "\t(%.2f)_median\t" % np.median(errors) + lab)
+        plt.violinplot(errors[np.isfinite(errors)], [p], points=50, vert=False, widths=0.65,
                        showmeans=False, showmedians=True, showextrema=True, bw_method='silverman')
 
     plt.axvline(x=0, color="k", linestyle="dashed")
     plt.yticks(pos, labels)
     plt.gca().invert_yaxis()
-    plt.xlabel('Time Prediction Error (minute)')
+    plt.xlabel('Time Prediction Error (frame)')
     plt.show()
 
     print("Time prediction error per signal")
     for row in to_print:
         print(row)
-
-
-def print_f1scores_df_summaries(summaries, labels, act):
-    print("Label".ljust(25) + "Frame-based f1score".ljust(25) + "Block-based f1score")
-    for summary, lab in zip(summaries, labels):
-        frame_str = "%0.3f (+-%0.3f)" % (summary.frame_f1score.mean(), summary.frame_f1score.std())
-        event_str = "%0.3f (+-%0.3f)" % (summary.event_f1score.mean(), summary.event_f1score.std())
-        print(lab.ljust(25)[:25] + frame_str.ljust(25) + event_str)

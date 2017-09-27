@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='armetrics',
-      version='0.1.3',
+      version='0.1.4',
       description='Continuous Activity Recognition Metrics based on (Ward et al, 2011)',
       url='http://github.com/srvanrell/armetrics',
       author='srvanrell',
