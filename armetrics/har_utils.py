@@ -493,7 +493,7 @@ def spider_plot(title, radial_labels, case_data, case_labels):
 
     axes.fill(half_axis, half_circle, facecolor="grey", alpha=0.25)  # Fill the polygon
     colors = ["C%d" % i for i in range(len(case_labels))]
-    axes.set_rgrids([0.2, 0.4, 0.6, 0.8])
+    axes.set_rgrids([0.2, 0.4, 0.6, 0.8], [0.8, 0.6, 0.4, 0.2])
     axes.set_title(title, weight='bold', position=(0.5, 1.1),
                    horizontalalignment='center', verticalalignment='center')
     axes.set_ylim([0, 1])
@@ -513,7 +513,9 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     axes.legend(case_labels, bbox_to_anchor=(1.15, 1.05),  # loc=(0.9, .95),
                 loc=2, labelspacing=0.5, fontsize='small')
 
-    plt.tight_layout(pad=2.5)
+    plt.tight_layout(pad=3.5)
+    plt.savefig(title + ".pdf")
+    plt.savefig(title + ".png")
     plt.show()
 
 
@@ -547,9 +549,11 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
     spider_plot(title=title,
                 radial_labels=[
                     # Frame-based metrics
-                    "Recall", "Precision", "1-Frag. rate", "1-Merg. rate", "1-Del. rate", "1-Ins. rate",
+                    # "Recall", "Precision", "1-Frag. rate", "1-Merg. rate", "1-Del. rate", "1-Ins. rate",
+                    # Eje invertido
+                    "FNR", "FDR", "Frag.", "Merg.", "Del.", "Ins.",
                     # Frame-based metrics
-                    "1-Ins. rate", "1-Del. rate", "1-Merg. rate", "1-Frag. rate", "Precision", "Recall"
+                    "Ins.", "Del.", "Merg.", "Frag.", "FDR", "FNR"
                 ],
                 case_data=case_data,
                 case_labels=labels)
