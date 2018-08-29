@@ -503,8 +503,10 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     axes.set_varlabels(radial_labels)
 
     # Block- and frame-based legend
-    frame_patch = mpatches.Patch(facecolor='lightgrey', edgecolor='k', label='Frame-based metrics')
-    block_patch = mpatches.Patch(facecolor='white', edgecolor='k', label='Block-based metrics')
+#    frame_patch = mpatches.Patch(facecolor='lightgrey', edgecolor='k', label='Frame-based metrics')
+#    block_patch = mpatches.Patch(facecolor='white', edgecolor='k', label='Block-based metrics')
+    frame_patch = mpatches.Patch(facecolor='lightgrey', edgecolor='k', label='Medidas por ventanas')
+    block_patch = mpatches.Patch(facecolor='white', edgecolor='k', label='Medidas por bloques')
     first_legend = plt.legend(handles=[frame_patch, block_patch], ncol=1,
                               bbox_to_anchor=(-0.15, 0.0), loc=2, borderaxespad=0.0,
                               framealpha=0)
@@ -551,9 +553,11 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                     # Frame-based metrics
                     # "Recall", "Precision", "1-Frag. rate", "1-Merg. rate", "1-Del. rate", "1-Ins. rate",
                     # Eje invertido
-                    "FNR", "FDR", "Frag.", "Merg.", "Del.", "Ins.",
+#                    "FNR", "FDR", "Frag.", "Merg.", "Del.", "Ins.",
+                    "FNR", "FDR", "Frag.", "Comb.", "Elim.", "Ins.",
                     # Frame-based metrics
-                    "Ins.", "Del.", "Merg.", "Frag.", "FDR", "FNR"
+#                    "Ins.", "Del.", "Merg.", "Frag.", "FDR", "FNR"
+                    "Ins.", "Elim.", "Comb.", "Frag.", "FDR", "FNR"
                 ],
                 case_data=case_data,
                 case_labels=labels)
