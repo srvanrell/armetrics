@@ -483,13 +483,13 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     """
     n_radial = len(radial_labels)
     theta = radar_factory(n_radial, frame='polygon')
-    theta += np.pi / 12
+    theta += np.pi / 14
 
     fig, axes = plt.subplots(figsize=(9, 7), nrows=1, ncols=1,
                              subplot_kw=dict(projection='radar'))
 
-    half_axis = np.concatenate(([theta[0]-np.pi/12], theta[:6], [theta[5]+np.pi/12]))
-    half_circle = [1] * 8
+    half_axis = np.concatenate(([theta[0]-np.pi/14], theta[:8], [theta[7]+np.pi/14]*2))
+    half_circle = [1] * 10 + [0]
 
     axes.fill(half_axis, half_circle, facecolor="grey", alpha=0.25)  # Fill the polygon
     colors = ["C%d" % i for i in range(len(case_labels))]
@@ -539,7 +539,7 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
         case_data.append([summary_mean.frame_recall, summary_mean.frame_precision,
                           1 - summary_mean.f_rate, 1 - summary_mean.m_rate,
                           1 - summary_mean.d_rate, 1 - summary_mean.i_rate,
-                          # 1 - summary_mean.u_rate, 1 - summary_mean.o_rate[act],
+                          1 - summary_mean.u_rate, 1 - summary_mean.o_rate,
                           #
                           1 - summary_mean.ins_rate, 1 - summary_mean.del_rate,
                           1 - summary_mean.merge_rate, 1 - summary_mean.frag_rate,
@@ -552,6 +552,8 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                     # "Recall", "Precision", "1-Frag. rate", "1-Merg. rate", "1-Del. rate", "1-Ins. rate",
                     # Eje invertido
                     "FNR", "FDR", "Frag.", "Merg.", "Del.", "Ins.",
+                    # Agregados
+                    "Under.", "Over.",
                     # Frame-based metrics
                     "Ins.", "Del.", "Merg.", "Frag.", "FDR", "FNR"
                 ],
