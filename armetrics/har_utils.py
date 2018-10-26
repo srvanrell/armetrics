@@ -550,12 +550,18 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                 radial_labels=[
                     # Frame-based metrics
                     # "Recall", "Precision", "1-Frag. rate", "1-Merg. rate", "1-Del. rate", "1-Ins. rate",
+                    # # Eje invertido
+                    # "FNR", "FDR", "Frag.", "Merg.", "Del.", "Ins.",
+                    # # Agregados
+                    # "Under.", "Over.",
+                    # # Frame-based metrics
+                    # "Ins.", "Del.", "Merg.", "Frag.", "FDR", "FNR"
                     # Eje invertido
-                    "FNR", "FDR", "Frag.", "Merg.", "Del.", "Ins.",
+                    r"$\rm{FNR}_f$", r"$\rm{FDR}_f$", r"$\rm{F}_f$", r"$\rm{M}_f$", r"$\rm{D}_f$", r"$\rm{I}_f$",
                     # Agregados
-                    "Under.", "Over.",
+                    r"$\rm{U}_f$", r"$\rm{O}_f$",
                     # Frame-based metrics
-                    "Ins.", "Del.", "Merg.", "Frag.", "FDR", "FNR"
+                    r"$\rm{I}_b$", r"$\rm{D}_b$", r"$\rm{M}_b$", r"$\rm{F}_b$", r"$\rm{FDR}_b$", r"$\rm{FNR}_b$"
                 ],
                 case_data=case_data,
                 case_labels=labels)
