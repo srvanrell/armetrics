@@ -74,8 +74,9 @@ scored_sessions2 = get_sessions_scores([ground], [prediction2], noi)
 
 spider_df_summaries([scored_sessions1.groupby("activity"),
                      scored_sessions2.groupby("activity"),
-                     scored_sessions1.groupby("activity"),
-                     scored_sessions2.groupby("activity")
+                     # scored_sessions1.groupby("activity"),
+                     # scored_sessions2.groupby("activity")
                      ],
-                    ["test1", "test2", "test3", "test4"])
+                    ["test1", "test2"])
+                     # "test3", "test4"])
 

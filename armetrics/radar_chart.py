@@ -80,7 +80,7 @@ def radar_factory(num_vars, frame='circle'):
                 line.set_data(x, y)
 
         def set_varlabels(self, labels):
-            self.set_thetagrids(np.degrees(theta), labels, frac=1.15)
+            self.set_thetagrids(np.degrees(theta), labels, size='large') #, frac=1.1)  # FIXME to change size: size='large'
 
         def _gen_axes_patch(self):
             return self.draw_patch()

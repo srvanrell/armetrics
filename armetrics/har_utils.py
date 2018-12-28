@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 
 from armetrics.models import Event, Segment
-from armetrics.radar_chart import radar_factory
 
 
 def frames2segments(y_true, y_pred, advanced_labels=True):
@@ -481,37 +480,63 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     :param case_labels: ["Serie 1", "Serie 2"]
     :return:
     """
-    n_radial = len(radial_labels)
-    theta = radar_factory(n_radial, frame='polygon')
-    theta += np.pi / 14
+    n_radial = len(radial_labels)  # number of variables
 
-    fig, axes = plt.subplots(figsize=(9, 7), nrows=1, ncols=1,
-                             subplot_kw=dict(projection='radar'))
+    # number of variable
+    categories = radial_labels
+    N = len(categories)
 
-    half_axis = np.concatenate(([theta[0]-np.pi/14], theta[:8], [theta[7]+np.pi/14]*2))
-    half_circle = [1] * 10 + [0]
+    # What will be the angle of each axis in the plot? (we divide the plot / number of variable)
+    angles = [(n / float(N) * 2 * np.pi) + np.pi/2.0 + np.pi/float(N) for n in range(N)]
+    for i, a in enumerate(angles):
+        if a > np.pi*2:
+            angles[i] -= np.pi*2
+    angles += angles[:1]
 
-    axes.fill(half_axis, half_circle, facecolor="grey", alpha=0.25)  # Fill the polygon
+    # Initialise the spider plot
+    fig = plt.figure(figsize=(9, 7))
+    ax = plt.subplot(111, polar=True, frame_on=False, )
+
+    # Draw one axe per variable + add labels labels yet
+    plt.xticks(angles[:-1], categories, size='large')
+
+    ax.plot(angles, [1.0]*len(angles), linewidth=1, linestyle='solid', color='black')
+
+    # grey half circle
+    half_axis = np.concatenate(([angles[0] - np.pi / 14], angles[:8], [angles[7] + np.pi / 14] * 2))
+    half_circle = [0.98] + [1] * 8 + [0.98] + [0]
+    ax.fill(half_axis, half_circle, facecolor="grey", alpha=0.25)  # Fill the polygon
+
+    #    axes.set_title(title, weight='bold', position=(0.5, 1.1),
+    #                   horizontalalignment='center', verticalalignment='center')
+
     colors = ["C%d" % i for i in range(len(case_labels))]
-    axes.set_rgrids([0.2, 0.4, 0.6, 0.8], [0.8, 0.6, 0.4, 0.2])
-    axes.set_title(title, weight='bold', position=(0.5, 1.1),
-                   horizontalalignment='center', verticalalignment='center')
-    axes.set_ylim([0, 1])
-    for d, color in zip(case_data, colors):
-        axes.plot(theta, d, color=color)
-        # axes.fill(theta, d, facecolor=color, alpha=0.25)  # Fill the polygon
-    axes.set_varlabels(radial_labels)
+    ax.set_rgrids([0.2, 0.4, 0.6, 0.8], [0.8, 0.6, 0.4, 0.2])
+    #    axes.set_title(title, weight='bold', position=(0.5, 1.1),
+    #                   horizontalalignment='center', verticalalignment='center')
+    ax.set_ylim([0, 1])
+
+    # ------- PART 2: Add plots
+
+    # Plot each individual = each line of the data
+    for i, (cl, color) in enumerate(zip(case_labels, colors)):
+        values = case_data[i]  # df.loc[1].drop('group').values.flatten().tolist()
+        values += values[:1]
+        ax.plot(angles, values, linewidth=2, linestyle='solid', label=cl, color=color)
 
     # Block- and frame-based legend
     frame_patch = mpatches.Patch(facecolor='lightgrey', edgecolor='k', label='Frame-based metrics')
     block_patch = mpatches.Patch(facecolor='white', edgecolor='k', label='Block-based metrics')
     first_legend = plt.legend(handles=[frame_patch, block_patch], ncol=1,
                               bbox_to_anchor=(-0.15, 0.0), loc=2, borderaxespad=0.0,
-                              framealpha=0)
+                              framealpha=0, fontsize='large')
     plt.gca().add_artist(first_legend)
 
-    axes.legend(case_labels, bbox_to_anchor=(1.15, 1.05),  # loc=(0.9, .95),
-                loc=2, labelspacing=0.5, fontsize='small')
+    # Add legend
+    plt.legend(loc='upper left', bbox_to_anchor=(1.15, 1.05),
+               labelspacing=0.5, fontsize='large')
+    # plt.legend(case_labels, bbox_to_anchor=(1.15, 1.05),  # loc=(0.9, .95),
+    #            loc=2, labelspacing=0.5, fontsize='small')
 
     plt.tight_layout(pad=3.5)
     plt.savefig(title + ".pdf")

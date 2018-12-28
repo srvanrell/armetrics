@@ -9,6 +9,6 @@ setup(name='armetrics',
       license='MIT',
       packages=['armetrics'],
       zip_safe=False,
-      install_requires=['matplotlib<=2.0.2',
+      install_requires=['matplotlib<=3.0.2',
                         'numpy>=1.13.1',
                         'pandas>=0.20.1'])
