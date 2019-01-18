@@ -1,4 +1,5 @@
-# armetrics
+armetrics
+=========
 
 Ongoing work...
 
@@ -6,7 +7,8 @@ Python implementation of some metrics proposed in:
 
 J. A. Ward, P. Lukowicz, and H. W. Gellersen, “Performance Metrics for Activity Recognition,” ACM Trans. Intell. Syst. Technol., vol. 2, no. 1, p. 6:1–6:23, Jan. 2011.
 
-## Installation
+Installation
+------------
 
 This system has been developed for a Linux environment.
 
@@ -22,7 +24,8 @@ Uninstallation
 
     [sudo] pip3 uninstall armetrics
     
-## Update
+Update
+------
 
 System-wide update
 
@@ -32,11 +35,13 @@ Single-user update (recommended)
 
     pip3 install --user -U armetrics
     
-## Usage
+Usage
+-----
 
 There are two examples (that should be improved)
     
-## Development
+Development
+-----------
 
 Install locally from source (source directory will immediately affect the installed package
 without needing to re-install): 

@@ -283,19 +283,23 @@ def events_summary(scored_true_events, scored_pred_events, normalize=True):
         summary["merge_rate"] = 1.0 * sum(summary[l] for l in ["M", "FM"]) / summary["num_true_events"]
         summary["del_rate"] = 1.0 * sum(summary[l] for l in ["D"]) / summary["num_true_events"]
     else:
-        summary["event_recall"] = np.nan
+        # TODO REVIEW if there were no positives events in the ground truth then recall is set to 1.0
+        # nothing can be say about fragmentation, merging or deletion so I will set them to 0
+        summary["event_recall"] = 1.0  # np.nan
 
-        summary["frag_rate"] = np.nan
-        summary["merge_rate"] = np.nan
-        summary["del_rate"] = np.nan
+        summary["frag_rate"] = 0.0  # np.nan
+        summary["merge_rate"] = 0.0  # np.nan
+        summary["del_rate"] = 0.0  # np.nan
 
     if summary["num_pred_events"] > 0:
         summary["event_precision"] = 1.0 * summary["C"] / summary["num_pred_events"]
 
         summary["ins_rate"] = 1.0 * sum(summary[l] for l in ["I'"]) / summary["num_pred_events"]
     else:
-        summary["event_precision"] = np.nan
-        summary["ins_rate"] = np.nan
+        # TODO REVIEW if there were no predicted events in the output sequence then precision is set to 1.0
+        # nothing can be say about insertion so I will set it to 0
+        summary["event_precision"] = 1.0  # np.nan
+        summary["ins_rate"] = 0.0  # np.nan
 
     if summary["event_recall"] > 0 and summary["event_precision"] > 0:
         summary["event_f1score"] = 2 * summary["event_recall"] * summary["event_precision"] / (
@@ -330,14 +334,41 @@ def frames_summary(scored_frames, normalize=True):
 
     summary["fp"] = summary["output_positives"] - summary["tp"]
     summary["fn"] = summary["output_negatives"] - summary["tn"]
+
+    # Given a confusion matrix:
+    #
+    #           predicted
+    #           (+)   (-)
+    #            ---------
+    #       (+) | TP | FN |
+    # actual     ---------
+    #       (-) | FP | TN |
+    #            ---------
+    #
+    # we know that:
+    # Precision = TP / (TP + FP)
+    # Recall = TP / (TP + FN)
+    #
+    # Lets consider the cases where the denominator is zero:
+    #
+    # TP + FN = 0: means that there were no positive cases in the input data
+    # TP + FP = 0: means that all instances were predicted as negative
+    #
+    # If TP = 0 (as in both cases), recall is 1, since the method has discovered all of none true positives;
+    # precision is 0 if there is any FP and 1 otherwise
+
     if (summary["tp"] + summary["fp"]) > 0:
         summary["frame_precision"] = 1.0 * summary["tp"] / (summary["tp"] + summary["fp"])
     else:
-        summary["frame_precision"] = np.nan
+        # NOT SURE if there were no positives in the predicted sequence then precision is
+        # not defined, here it is set to 1.
+        summary["frame_precision"] = 1.0  # np.nan
     if (summary["tp"] + summary["fn"]) > 0:
         summary["frame_recall"] = 1.0 * summary["tp"] / (summary["tp"] + summary["fn"])
     else:
-        summary["frame_recall"] = np.nan
+        # REVIEW if there were no positives in the ground truth then recall is set to 1.0
+        # if FP=0 then ti should be 10. Im not sure it is right when FP != 0
+        summary["frame_recall"] = 1.0  # np.nan
 
     if summary["frame_recall"] > 0 and summary["frame_precision"] > 0:
         summary["frame_f1score"] = 2 * summary["frame_recall"] * summary["frame_precision"] / (
