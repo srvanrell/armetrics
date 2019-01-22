@@ -282,7 +282,7 @@ def events_summary(scored_true_events, scored_pred_events, normalize=True):
         summary["frag_rate"] = 1.0 * sum(summary[l] for l in ["F", "FM"]) / summary["num_true_events"]
         summary["merge_rate"] = 1.0 * sum(summary[l] for l in ["M", "FM"]) / summary["num_true_events"]
         summary["del_rate"] = 1.0 * sum(summary[l] for l in ["D"]) / summary["num_true_events"]
-    else:
+    elif summary["num_pred_events"] == 0:
         # TODO REVIEW if there were no positives events in the ground truth then recall is set to 1.0
         # nothing can be say about fragmentation, merging or deletion so I will set them to 0
         summary["event_recall"] = 1.0  # np.nan
@@ -290,20 +290,35 @@ def events_summary(scored_true_events, scored_pred_events, normalize=True):
         summary["frag_rate"] = 0.0  # np.nan
         summary["merge_rate"] = 0.0  # np.nan
         summary["del_rate"] = 0.0  # np.nan
+    else:
+        # TODO REVIEW if there were no positives events in the ground truth then recall is set to 1.0
+        # nothing can be say about fragmentation, merging or deletion so I will set them to 0
+        summary["event_recall"] = np.nan
+
+        summary["frag_rate"] = np.nan
+        summary["merge_rate"] = np.nan
+        summary["del_rate"] = np.nan
 
     if summary["num_pred_events"] > 0:
         summary["event_precision"] = 1.0 * summary["C"] / summary["num_pred_events"]
 
         summary["ins_rate"] = 1.0 * sum(summary[l] for l in ["I'"]) / summary["num_pred_events"]
-    else:
+    elif summary["num_true_events"] == 0:
         # TODO REVIEW if there were no predicted events in the output sequence then precision is set to 1.0
         # nothing can be say about insertion so I will set it to 0
         summary["event_precision"] = 1.0  # np.nan
         summary["ins_rate"] = 0.0  # np.nan
+    else:
+        # TODO REVIEW if there were no predicted events in the output sequence then precision is set to 1.0
+        # nothing can be say about insertion so I will set it to 0
+        summary["event_precision"] = np.nan
+        summary["ins_rate"] = np.nan
 
     if summary["event_recall"] > 0 and summary["event_precision"] > 0:
         summary["event_f1score"] = 2 * summary["event_recall"] * summary["event_precision"] / (
             summary["event_recall"] + summary["event_precision"])
+    elif summary["event_recall"] == 0 and summary["event_precision"] == 0:
+        summary["event_f1score"] = 0.0  # np.nan
     else:
         summary["event_f1score"] = np.nan
 
@@ -359,20 +374,27 @@ def frames_summary(scored_frames, normalize=True):
 
     if (summary["tp"] + summary["fp"]) > 0:
         summary["frame_precision"] = 1.0 * summary["tp"] / (summary["tp"] + summary["fp"])
-    else:
+    elif summary["fn"] == 0:
         # NOT SURE if there were no positives in the predicted sequence then precision is
         # not defined, here it is set to 1.
         summary["frame_precision"] = 1.0  # np.nan
+    else:
+        summary["frame_precision"] = np.nan
+
     if (summary["tp"] + summary["fn"]) > 0:
         summary["frame_recall"] = 1.0 * summary["tp"] / (summary["tp"] + summary["fn"])
-    else:
+    elif summary["fp"] == 0:
         # REVIEW if there were no positives in the ground truth then recall is set to 1.0
         # if FP=0 then ti should be 10. Im not sure it is right when FP != 0
         summary["frame_recall"] = 1.0  # np.nan
+    else:
+        summary["frame_recall"] = np.nan
 
     if summary["frame_recall"] > 0 and summary["frame_precision"] > 0:
         summary["frame_f1score"] = 2 * summary["frame_recall"] * summary["frame_precision"] / (
             summary["frame_recall"] + summary["frame_precision"])
+    elif summary["frame_recall"] == 0 and summary["frame_precision"] == 0:
+        summary["frame_f1score"] = 0.0  # np.nan
     else:
         summary["frame_f1score"] = np.nan
 
