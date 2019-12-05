@@ -1,4 +1,4 @@
-from armetrics.har_utils import *
+from armetrics.utils import *
 
 # Example taken from Figure 2 of the paper
 ground_ev = [[1, 6],
@@ -45,7 +45,7 @@ print(frames_summary(scored_frames))
 # Loading a label from hasc database
 
 import pandas as pd
-import utils
+import hasc_utils
 
 # features_folder = 'features/'
 
@@ -66,11 +66,11 @@ hasc_df_sequence = hasc_df[hasc_df.activity == "sequence"]
 hasc_df_sequence = hasc_df_sequence[pd.notnull(hasc_df_sequence.label_file)]  # Avoid records without labels file
 
 acc_filename = hasc_df["acc_file"][0]
-acc = utils.read_acc(acc_filename)
-labels = utils.read_labels(acc_filename.replace("-acc.csv", ".label"))
+acc = hasc_utils.read_acc(acc_filename)
+labels = hasc_utils.read_labels(acc_filename.replace("-acc.csv", ".label"))
 
-window_times = utils.get_window_times(acc.mag, window_size, window_overlap)
-window_labels = [utils.get_label(labels.get_values(), acc.t[t_center]) for ti, te, t_center in window_times]
+window_times = hasc_utils.get_window_times(acc.mag, window_size, window_overlap)
+window_labels = [hasc_utils.get_label(labels.get_values(), acc.t[t_center]) for ti, te, t_center in window_times]
 
 print(acc_filename)
 print(labels)
