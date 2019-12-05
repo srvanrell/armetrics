@@ -22,6 +22,9 @@ class Event:
         """
         return self.start <= event.start < self.end or self.start < event.end <= self.end
 
+    def __len__(self):
+        return self.end - self.start
+
 
 class Segment:
     def __init__(self, start=None, end=None, label=""):
@@ -31,3 +34,6 @@ class Segment:
 
     def __repr__(self):
         return str([self.start, self.end, self.label])
+
+    def __len__(self):
+        return self.end - self.start

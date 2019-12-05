@@ -1,9 +1,9 @@
 
-from armetrics.har_utils import *
+from armetrics.utils import *
 
-ground_filename = "./data/ground.txt"
-prediction_filename1 = "./data/cbar.txt"
-prediction_filename2 = "./data/walter.txt"
+ground_filename = "./examples/data/ground.txt"
+prediction_filename1 = "./examples/data/cbar.txt"
+prediction_filename2 = "./examples/data/walter.txt"
 
 standardized_names = {"RUMIA PASTURA": "RUMIA", "PASTURA": "PASTOREO"}
 regularity_replacements = {"RUMIA": "REGULAR", "PASTOREO": "REGULAR"}
@@ -79,4 +79,3 @@ spider_df_summaries([scored_sessions1.groupby("activity"),
                      ],
                     ["test1", "test2"])
                      # "test3", "test4"])
-

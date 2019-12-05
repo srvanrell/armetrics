@@ -16,42 +16,46 @@ System-wide installation
 
     sudo pip3 install armetrics
 
-Single-user installation (recommended)
+Single-user installation
 
     pip3 install --user armetrics
+
+Virtualenv installation (recommended)
+
+    pipenv install armetrics
 
 Uninstallation
 
     [sudo] pip3 uninstall armetrics
-    
+
 Update
 ------
 
 System-wide update
 
     sudo pip3 install -U armetrics
-    
+
 Single-user update (recommended)
 
     pip3 install --user -U armetrics
-    
+
 Usage
 -----
 
 There are two examples (that should be improved)
-    
+
 Development
 -----------
 
 Install locally from source (source directory will immediately affect the installed package
-without needing to re-install): 
-    
+without needing to re-install):
+
     pip3 install --user --editable .
-    
+
 Update version at `setup.py` and then create a source distribution
 
     python3 setup.py sdist
-    
+
 Upload to PyPI
-    
-    twine upload dist/* 
+
+    twine upload dist/*
