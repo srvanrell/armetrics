@@ -1,4 +1,5 @@
 from armetrics import utils
+from armetrics import scorer
 
 # Example taken from Figure 2 of the paper
 ground_ev = [[1, 6],
@@ -34,9 +35,9 @@ for seg in scored_segments:
 
 scored_frames = utils.segments2frames(scored_segments)
 
-scored_true_events, scored_pred_events = utils.score_events(scored_segments, ground_ev, output1_ev)
+scored_true_events, scored_pred_events = scorer.score_events(scored_segments, ground_ev, output1_ev)
 print(scored_true_events)
 print(scored_pred_events)
 
-print(utils.events_summary(scored_true_events, scored_pred_events, normalize=True))
-print(utils.frames_summary(scored_frames))
+print(scorer.events_summary(scored_true_events, scored_pred_events, normalize=True))
+print(scorer.frames_summary(scored_frames))
