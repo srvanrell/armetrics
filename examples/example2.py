@@ -83,7 +83,7 @@ noi = ["RUMIA"]
 scored_sessions1 = utils.get_sessions_scores(ground, predictions1, noi)
 scored_sessions2 = utils.get_sessions_scores(ground, predictions2, noi)
 
-print(scored_sessions1)
+print(scored_sessions1.columns)
 
 plotter.spider_and_violinplot_df_summaries([scored_sessions1.groupby("activity"),
                                             scored_sessions2.groupby("activity")],
