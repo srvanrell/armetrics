@@ -112,7 +112,6 @@ def get_scores(y_true_bin, y_pred_bin):
             "frames_summary": scorer.frames_summary(scored_frames)}
 
 
-# TODO test this function in an experiment
 def get_sessions_scores(ytest_by_session, ypred_by_session, classes_of_interest):
     """ (NOT IMPLEMENTED) average_mode should control if any average should be done (macro, micro, samples, ...).
     Open discussion involves if averaging should be done across sessions and/or across activities.
@@ -137,3 +136,7 @@ def get_sessions_scores(ytest_by_session, ypred_by_session, classes_of_interest)
     df.rename(columns={"index": "session"}, inplace=True)
 
     return df
+
+
+
+

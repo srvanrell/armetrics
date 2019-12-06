@@ -73,18 +73,27 @@ def load_chewbite(filename, start=None, end=None, verbose=True, to_regularity=Fa
     return s_formatted
 
 
-ground = [load_chewbite(filename) for filename in ground_filenames]
-predictions1 = [load_chewbite(filename) for filename in prediction_filenames1]
-predictions2 = [load_chewbite(filename) for filename in prediction_filenames2]
+def complete_report(loader_function, labels_of_interest, labels_of_predictors,
+                    ground_filenames, *argv_prediction_filenames):
+    """
+    :param loader_function: function to load
+    :param labels_of_interest: list of labels of interest (among the ones within given files)
+    :param ground_filenames: list of filenames for the ground truth
+    :param argv_prediction_filenames: lists of filenames for each method of prediction
+    (each list is given as a separated argument)
+    """
+    ground = [loader_function(filename) for filename in ground_filenames]
+    predictions = []
+    for prediction_filenames in argv_prediction_filenames:
+        predictions.append([loader_function(filename) for filename in prediction_filenames])
 
-# print(ground)
-# print(prediction)
-noi = ["RUMIA"]
-scored_sessions1 = utils.get_sessions_scores(ground, predictions1, noi)
-scored_sessions2 = utils.get_sessions_scores(ground, predictions2, noi)
+    scored_sessions = [utils.get_sessions_scores(ground, pred, labels_of_interest) for pred in predictions]
 
-print(scored_sessions1)
+    plotter.spider_and_violinplot_df_summaries([scored_s.groupby("activity") for scored_s in scored_sessions],
+                                               labels_of_predictors)
 
-plotter.spider_and_violinplot_df_summaries([scored_sessions1.groupby("activity"),
-                                            scored_sessions2.groupby("activity")],
-                                           ["test1", "test2"])
+
+label_of_interest = ["RUMIA"]
+names_of_predictors = ["test1", "test2"]
+complete_report(load_chewbite, label_of_interest, names_of_predictors,
+                ground_filenames, prediction_filenames1, prediction_filenames2)
