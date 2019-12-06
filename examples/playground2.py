@@ -1,9 +1,9 @@
 
 from armetrics.utils import *
 
-ground_filename = "./data/ground.txt"
-prediction_filename1 = "./data/cbar.txt"
-prediction_filename2 = "./data/walter.txt"
+ground_filename = "./examples/data/ground.txt"
+prediction_filename1 = "./examples/data/cbar.txt"
+prediction_filename2 = "./examples/data/walter.txt"
 
 standardized_names = {"RUMIA PASTURA": "RUMIA", "PASTURA": "PASTOREO"}
 regularity_replacements = {"RUMIA": "REGULAR", "PASTOREO": "REGULAR"}
@@ -74,8 +74,8 @@ scored_sessions2 = get_sessions_scores([ground], [prediction2], noi)
 
 spider_df_summaries([scored_sessions1.groupby("activity"),
                      scored_sessions2.groupby("activity"),
-                     scored_sessions1.groupby("activity"),
-                     scored_sessions2.groupby("activity")
+                     # scored_sessions1.groupby("activity"),
+                     # scored_sessions2.groupby("activity")
                      ],
-                    ["test1", "test2", "test3", "test4"])
-
+                    ["test1", "test2"])
+                     # "test3", "test4"])
