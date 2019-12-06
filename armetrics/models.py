@@ -16,11 +16,14 @@ class Event:
 
     def overlap(self, event):
         """
-        Return True if given event overlaps with this one (at the beginning or the end). 
-        :param event: 
-        :return: 
+        Return True if given event overlaps with this one (at the beginning or the end).
+        :param event:
+        :return:
         """
-        return self.start <= event.start < self.end or self.start <= event.end < self.end
+        return self.start <= event.start < self.end or self.start < event.end <= self.end
+
+    def __len__(self):
+        return self.end - self.start
 
 
 class Segment:
@@ -31,3 +34,6 @@ class Segment:
 
     def __repr__(self):
         return str([self.start, self.end, self.label])
+
+    def __len__(self):
+        return self.end - self.start
