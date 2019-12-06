@@ -72,14 +72,6 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     plt.show()
 
 
-def spider_df_summaries(summaries_by_activity, labels):
-    for act in summaries_by_activity[0].mean().index.tolist():
-        single_spider_df_summaries([s.get_group(act) for s in summaries_by_activity],
-                                   labels, act)
-        print_f1scores_df_summaries([s.get_group(act) for s in summaries_by_activity],
-                                    labels, act)
-
-
 def single_spider_df_summaries(summaries, labels, title="Titulo"):
     case_data = []
     for summary, lab in zip(summaries, labels):
@@ -109,6 +101,14 @@ def single_spider_df_summaries(summaries, labels, title="Titulo"):
                 ],
                 case_data=case_data,
                 case_labels=labels)
+
+
+def spider_df_summaries(summaries_by_activity, labels):
+    for act in summaries_by_activity[0].mean().index.tolist():
+        single_spider_df_summaries([s.get_group(act) for s in summaries_by_activity],
+                                   labels, act)
+        print_f1scores_df_summaries([s.get_group(act) for s in summaries_by_activity],
+                                    labels, act)
 
 
 def print_f1scores_df_summaries(summaries, labels, act):
