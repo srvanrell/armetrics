@@ -1,9 +1,14 @@
+# This file should be run in the 'examples' folder
 
-from armetrics.utils import *
+from armetrics import utils
+from armetrics import plotter
 
-ground_filename = "./examples/data/ground.txt"
-prediction_filename1 = "./examples/data/cbar.txt"
-prediction_filename2 = "./examples/data/walter.txt"
+ground_filenames = ["./data/ground.txt",
+                    "./data/ground.txt"]
+prediction_filenames1 = ["./data/test11.txt",
+                         "./data/test12.txt"]
+prediction_filenames2 = ["./data/test21.txt",
+                         "./data/test22.txt"]
 
 standardized_names = {"RUMIA PASTURA": "RUMIA", "PASTURA": "PASTOREO"}
 regularity_replacements = {"RUMIA": "REGULAR", "PASTOREO": "REGULAR"}
@@ -11,6 +16,11 @@ _names_of_interest = ["PASTOREO", "RUMIA"]
 
 
 def load_chewbite(filename, start=None, end=None, verbose=True, to_regularity=False):
+    from armetrics.models import Segment
+    from armetrics.utils import segments2frames
+    import pandas as pd
+    import numpy as np
+
     df = pd.read_table(filename, decimal=',', header=None)
     df.dropna(axis=1, how='all', inplace=True)
     df.columns = ["start", "end", "label"]
@@ -60,22 +70,22 @@ def load_chewbite(filename, start=None, end=None, verbose=True, to_regularity=Fa
 
     return s_formatted
 
-ground = load_chewbite(ground_filename)
-prediction1 = load_chewbite(prediction_filename1)
-prediction2 = load_chewbite(prediction_filename2)
+
+ground = [load_chewbite(filename) for filename in ground_filenames]
+predictions1 = [load_chewbite(filename) for filename in prediction_filenames1]
+predictions2 = [load_chewbite(filename) for filename in prediction_filenames2]
 
 # print(ground)
 # print(prediction)
 noi = ["RUMIA"]
-scored_sessions1 = get_sessions_scores([ground], [prediction1], noi)
-scored_sessions2 = get_sessions_scores([ground], [prediction2], noi)
+scored_sessions1 = utils.get_sessions_scores(ground, predictions1, noi)
+scored_sessions2 = utils.get_sessions_scores(ground, predictions2, noi)
 
 # print(scored_sessions.groupby("activity").mean())
 
-spider_df_summaries([scored_sessions1.groupby("activity"),
-                     scored_sessions2.groupby("activity"),
-                     # scored_sessions1.groupby("activity"),
-                     # scored_sessions2.groupby("activity")
-                     ],
-                    ["test1", "test2"])
-                     # "test3", "test4"])
+plotter.spider_and_violinplot_df_summaries([scored_sessions1.groupby("activity"),
+                                            scored_sessions2.groupby("activity"),
+                                            # scored_sessions1.groupby("activity"),
+                                            # scored_sessions2.groupby("activity")
+                                            ],
+                                           ["test1", "test2"])   # "test3", "test4"])
