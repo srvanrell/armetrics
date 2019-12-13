@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 
 from armetrics.models import Event, Segment
 from armetrics import scorer
@@ -112,28 +113,45 @@ def get_scores(y_true_bin, y_pred_bin):
             "frames_summary": scorer.frames_summary(scored_frames)}
 
 
-def get_sessions_scores(ytest_by_session, ypred_by_session, classes_of_interest):
-    """ (NOT IMPLEMENTED) average_mode should control if any average should be done (macro, micro, samples, ...).
-    Open discussion involves if averaging should be done across sessions and/or across activities.
+def get_sessions_scores(ground_filenames, prediction_filenames, loader_function, activities_of_interest,
+                        **kwarg):
     """
-    df = pd.DataFrame()
+    :param ground_filenames: list of filenames for the ground truth
+    :param prediction_filenames: list of filenames for the predictor
+    Additions arguments are given to loader_function
+    """
+    #     :param loader_function: function to load
+    #     :param labels_of_interest: list of labels of interest (among the ones within given files)
+    #
 
-    for sid, (ytest, ypred) in enumerate(zip(ytest_by_session, ypred_by_session)):
-        for act in classes_of_interest:
+    #     (each list is given as a separated argument)
+
+    # Ground sessions labels
+    yground_by_session = [loader_function(filename, **kwarg) for filename in ground_filenames]
+    # Prediction sessions labels
+    ypred_by_session = [loader_function(filename, **kwarg) for filename in prediction_filenames]
+
+    # df = pd.DataFrame()
+    dfs_to_concat = []
+
+    for sid, (ground_filename, pred_filename, ytest, ypred) in enumerate(zip(ground_filenames, prediction_filenames,
+                                                                           yground_by_session, ypred_by_session)):
+        for act in activities_of_interest:
             ytest_bin = binarize_frames(ytest, act)
             ypred_bin = binarize_frames(ypred, act)
             scores_dic = get_scores(ytest_bin, ypred_bin)
 
-            temp_df = pd.DataFrame(scores_dic["events_summary"], index=[sid])
-            temp2_df = pd.DataFrame(scores_dic["frames_summary"], index=[sid])
+            temp_merged = pd.DataFrame({**scores_dic["events_summary"],
+                                        **scores_dic["frames_summary"],
+                                        "activity":  act,
+                                        "ground_filename": os.path.basename(ground_filename),
+                                        "prediction_filename": os.path.basename(pred_filename),
+                                        "session_id": sid,
+                                        }, index=[99])
 
-            temp_merged = pd.concat([temp_df, temp2_df], axis=1)
-            temp_merged["activity"] = act
+            dfs_to_concat.append(temp_merged)
 
-            df = pd.concat([df, temp_merged])
-
-    df.reset_index(inplace=True)
-    df.rename(columns={"index": "session"}, inplace=True)
+    df = pd.concat(dfs_to_concat, ignore_index=True)
 
     return df
 
