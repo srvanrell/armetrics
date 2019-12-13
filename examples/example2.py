@@ -68,22 +68,16 @@ def load_chewbite(filename, start=None, end=None, verbose=True, to_regularity=Fa
 
     s_formatted = s.reindex(np.arange(s.index[-1]), fill_value="")
 
-    print (s_formatted)
+    # print (s_formatted)
+    # FIXME label column could be categorical
 
     return s_formatted
 
-
-ground = [load_chewbite(filename) for filename in ground_filenames]
-predictions1 = [load_chewbite(filename) for filename in prediction_filenames1]
-predictions2 = [load_chewbite(filename) for filename in prediction_filenames2]
-
 # print(ground)
 # print(prediction)
-noi = ["RUMIA"]
-scored_sessions1 = utils.get_sessions_scores(ground, predictions1, noi)
-scored_sessions2 = utils.get_sessions_scores(ground, predictions2, noi)
-
-print(scored_sessions1.columns)
+labels_of_interest = ["RUMIA", "PASTOREO"]
+scored_sessions1 = utils.get_sessions_scores(ground_filenames, prediction_filenames1, load_chewbite, labels_of_interest)
+scored_sessions2 = utils.get_sessions_scores(ground_filenames, prediction_filenames2, load_chewbite, labels_of_interest)
 
 plotter.spider_and_violinplot_df_summaries([scored_sessions1.groupby("activity"),
                                             scored_sessions2.groupby("activity")],

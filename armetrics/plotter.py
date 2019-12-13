@@ -128,6 +128,7 @@ def spider_and_violinplot_df_summaries(summaries_by_activity, labels):
         for summary, lab in zip(summaries, labels):
             minute_errors = summary.raw_time_error.values / 60.0
             minute_positives = summary.ground_positives / 60.0
+            to_save_dic["filename"] = summary.ground_filename
             to_save_dic[lab] = minute_errors
             to_save_dic["Reference"] = minute_positives
         df = pd.DataFrame(to_save_dic)
