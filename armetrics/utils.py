@@ -113,40 +113,34 @@ def get_scores(y_true_bin, y_pred_bin):
             "frames_summary": scorer.frames_summary(scored_frames)}
 
 
-def get_sessions_scores(ground_filenames, prediction_filenames, loader_function, activities_of_interest,
-                        **kwarg):
+def get_sessions_scores(ground_filenames, prediction_filenames, loader_function, activities_of_interest, **kwarg):
     """
     :param ground_filenames: list of filenames for the ground truth
     :param prediction_filenames: list of filenames for the predictor
+    :param activities_of_interest: list of labels of interest (among the ones within given files)
+    :param loader_function: function to read files, it should return ?? FIXME
     Additions arguments are given to loader_function
     """
-    #     :param loader_function: function to load
-    #     :param labels_of_interest: list of labels of interest (among the ones within given files)
-    #
-
-    #     (each list is given as a separated argument)
 
     # Ground sessions labels
     yground_by_session = [loader_function(filename, **kwarg) for filename in ground_filenames]
     # Prediction sessions labels
     ypred_by_session = [loader_function(filename, **kwarg) for filename in prediction_filenames]
 
-    # df = pd.DataFrame()
     dfs_to_concat = []
 
-    for sid, (ground_filename, pred_filename, ytest, ypred) in enumerate(zip(ground_filenames, prediction_filenames,
-                                                                           yground_by_session, ypred_by_session)):
-        for act in activities_of_interest:
-            ytest_bin = binarize_frames(ytest, act)
-            ypred_bin = binarize_frames(ypred, act)
+    for ground_filename, pred_filename, ytest, ypred in zip(ground_filenames, prediction_filenames,
+                                                            yground_by_session, ypred_by_session):
+        for activity in activities_of_interest:
+            ytest_bin = binarize_frames(ytest, activity)
+            ypred_bin = binarize_frames(ypred, activity)
             scores_dic = get_scores(ytest_bin, ypred_bin)
 
             temp_merged = pd.DataFrame({**scores_dic["events_summary"],
                                         **scores_dic["frames_summary"],
-                                        "activity":  act,
+                                        "activity":  activity,
                                         "ground_filename": os.path.basename(ground_filename),
-                                        "prediction_filename": os.path.basename(pred_filename),
-                                        "session_id": sid,
+                                        "prediction_filename": os.path.basename(pred_filename)
                                         }, index=[99])
 
             dfs_to_concat.append(temp_merged)

@@ -3,8 +3,8 @@
 from armetrics import utils
 from armetrics import plotter
 
-ground_filenames = ["./data/ground.txt",
-                    "./data/ground.txt"]
+ground_filenames = ["./data/ground1.txt",
+                    "./data/ground2.txt"]
 prediction_filenames1 = ["./data/test11.txt",
                          "./data/test12.txt"]
 prediction_filenames2 = ["./data/test21.txt",
@@ -73,8 +73,7 @@ def load_chewbite(filename, start=None, end=None, verbose=True, to_regularity=Fa
 
     return s_formatted
 
-# print(ground)
-# print(prediction)
+
 labels_of_interest = ["RUMIA", "PASTOREO"]
 scored_sessions1 = utils.get_sessions_scores(ground_filenames, prediction_filenames1, load_chewbite, labels_of_interest)
 scored_sessions2 = utils.get_sessions_scores(ground_filenames, prediction_filenames2, load_chewbite, labels_of_interest)

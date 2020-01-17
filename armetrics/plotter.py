@@ -120,25 +120,28 @@ def print_f1scores_df_summaries(summaries, labels, act):
 
 
 def spider_and_violinplot_df_summaries(summaries_by_activity, labels):
-    for act in summaries_by_activity[0].mean().index.tolist():
-        print('\n', act, '\n')
-        summaries = [s.get_group(act) for s in summaries_by_activity]
+
+    activities_of_interests = summaries_by_activity[0].groups.keys()
+
+    for activity in activities_of_interests:
+        print('\n', activity, '\n')
+        summaries = [s.get_group(activity) for s in summaries_by_activity]
 
         to_save_dic = {}
         for summary, lab in zip(summaries, labels):
-            minute_errors = summary.raw_time_error.values / 60.0
-            minute_positives = summary.ground_positives / 60.0
+            minutes_errors = summary.raw_time_error.values / 60.0
+            minutes_positives = summary.ground_positives / 60.0
             to_save_dic["filename"] = summary.ground_filename
-            to_save_dic[lab] = minute_errors
-            to_save_dic["Reference"] = minute_positives
+            to_save_dic[lab + "_diff_minutes"] = minutes_errors
+            to_save_dic["ground_minutes"] = minutes_positives
         df = pd.DataFrame(to_save_dic)
-        df.to_csv("errors_" + act, index=False)
+        df.to_csv("time_errors_" + activity, index=False)
 
-        mean_duration = df["Reference"].mean()
+        mean_duration = df["ground_minutes"].mean()
 
-        single_spider_df_summaries(summaries, labels, act)
-        print_f1scores_df_summaries(summaries, labels, act)
-        violinplot_raw_errors_df_summaries(summaries, labels, act, mean_duration)
+        single_spider_df_summaries(summaries, labels, activity)
+        print_f1scores_df_summaries(summaries, labels, activity)
+        violinplot_raw_errors_df_summaries(summaries, labels, activity, mean_duration)
 
         # saving frame scores TODO maybe this should be a function
         df_frame_fscores = pd.DataFrame()
@@ -146,8 +149,8 @@ def spider_and_violinplot_df_summaries(summaries_by_activity, labels):
         for summary, lab in zip(summaries, labels):
             df_frame_fscores[lab] = summary.frame_f1score
             df_block_fscores[lab] = summary.event_f1score
-        df_frame_fscores.to_csv("fscores_frame_" + act, index=False)
-        df_block_fscores.to_csv("fscores_block_" + act, index=False)
+        df_frame_fscores.to_csv("fscores_frame_" + activity, index=False)
+        df_block_fscores.to_csv("fscores_block_" + activity, index=False)
 
 
 def violinplot_raw_errors_df_summaries(summaries, labels, act, mean_duration):
