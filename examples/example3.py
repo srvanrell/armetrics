@@ -1,10 +1,9 @@
 # This file should be run in the 'examples' folder
 
 from armetrics import utils
-from armetrics import plotter
 
-ground_filenames = ["./data/ground1.txt",
-                    "./data/ground2.txt"]
+ground_filenames1 = ["./data/ground1.txt",
+                     "./data/ground2.txt"]
 prediction_filenames1 = ["./data/test11.txt",
                          "./data/test12.txt"]
 prediction_filenames2 = ["./data/test21.txt",
@@ -70,41 +69,10 @@ def load_chewbite(filename, start=None, end=None, verbose=True, to_regularity=Fa
 
     return s_formatted
 
-import pandas as pd
 
-
-def complete_report(loader_function, labels_of_interest, labels_of_predictors,
-                    ground_filenames, *argv_prediction_filenames, **kwargs):
-    """
-    :param labels_of_predictors: names of predictors to assign to predictions
-    :param loader_function: function to load
-    :param labels_of_interest: list of labels of interest (among the ones within given files)
-    :param ground_filenames: list of filenames for the ground truth
-    :param argv_prediction_filenames: lists of filenames for each method of prediction
-    (each list is given as a separated argument)
-    """
-
-    # Get scores for each pair of ground and prediction files, for each activities of interest
-    scored_sessions = [utils.get_sessions_scores(ground_filenames, prediction_filenames,
-                                                 loader_function, labels_of_interest, **kwargs)
-                       for prediction_filenames in argv_prediction_filenames]
-
-    # Add name of predictors to scored sessions
-    for lab, ss in zip(labels_of_predictors, scored_sessions):
-        ss.insert(len(ss.columns), "predictor_name", lab)
-
-    scored_sessions_df = pd.concat(scored_sessions, ignore_index=True)
-
-    csv_report_filename = "temp_report.csv"
-    scored_sessions_df.to_csv(csv_report_filename, index=None)
-
-    print(scored_sessions_df)
-    #
-    # plotter.spider_and_violinplot_df_summaries([scored_s.groupby("activity") for scored_s in scored_sessions],
-    #                                            labels_of_predictors)
-
-
+report_csv = "example3_report.csv"
 activities_of_interest = ["RUMIA", "PASTOREO"]
 names_of_predictors = ["test1", "test2"]
-complete_report(load_chewbite, activities_of_interest, names_of_predictors,
-                ground_filenames, prediction_filenames1, prediction_filenames2)
+
+utils.complete_report(report_csv, activities_of_interest, names_of_predictors, load_chewbite,
+                      ground_filenames1, prediction_filenames1, prediction_filenames2)

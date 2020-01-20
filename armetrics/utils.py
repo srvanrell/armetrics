@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 import os
 
-from armetrics.models import Event, Segment
+from armetrics.models import Segment
 from armetrics import scorer
+from armetrics import plotter
 
 
 def frames2segments(y_true, y_pred, advanced_labels=True):
@@ -150,5 +151,45 @@ def get_sessions_scores(ground_filenames, prediction_filenames, loader_function,
     return df
 
 
+def complete_report(csv_report_filename, labels_of_interest, labels_of_predictors, loader_function,
+                    ground_filenames, *argv_prediction_filenames, display=True, **kwargs):
+    """
+    :param csv_report_filename: file to store results. If it is a an empty string it will save no file.
+    :param labels_of_predictors: names of predictors to assign to predictions
+    :param loader_function: function to load
+    :param labels_of_interest: list of labels of interest (among the ones within given files)
+    :param ground_filenames: list of filenames for the ground truth
+    :param argv_prediction_filenames: lists of filenames for each method of prediction
+    (each list is given as a separated argument)
+    :type kwargs: extra arguments for loader function
+    """
+
+    # Get scores for each pair of ground and prediction files, for each activities of interest
+    scored_sessions = [get_sessions_scores(ground_filenames, prediction_filenames,
+                                           loader_function, labels_of_interest, **kwargs)
+                       for prediction_filenames in argv_prediction_filenames]
+
+    # Add name of predictors to scored sessions
+    for lab, ss in zip(labels_of_predictors, scored_sessions):
+        ss.insert(len(ss.columns), "predictor_name", lab)
+
+    complete_report_df = pd.concat(scored_sessions, ignore_index=True)
+    if csv_report_filename:
+        complete_report_df.to_csv(csv_report_filename, index=None)
+
+    if display:
+        display_report(complete_report_df)
+
+    return complete_report_df
 
 
+def display_report(complete_report_df):
+    report_activity_grouped = complete_report_df.groupby("activity")
+
+    for activity_label, single_activity_report in report_activity_grouped:
+        print("\n================", activity_label, "================\n")
+
+        plotter.plot_spider_from_report(single_activity_report)
+        plotter.plot_violinplot_from_report(single_activity_report)
+        plotter.print_f1scores_from_report(single_activity_report)
+        plotter.print_time_errors_from_report(single_activity_report)
