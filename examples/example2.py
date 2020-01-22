@@ -11,8 +11,8 @@ prediction_filenames2 = ["./data/test21.txt",
                          "./data/test22.txt"]
 
 standardized_names = {"RUMIA PASTURA": "RUMIA", "PASTURA": "PASTOREO"}
-regularity_replacements = {"RUMIA": "REGULAR", "PASTOREO": "REGULAR"}
-_names_of_interest = ["PASTOREO", "RUMIA"]
+regularity_replacements = {"ACTIVIDAD_A": "REGULAR", "ACTIVIDAD_B": "REGULAR"}
+_names_of_interest = ["ACTIVIDAD_A", "ACTIVIDAD_B"]
 
 
 def load_chewbite(filename, start=None, end=None, verbose=True, to_regularity=False):
@@ -74,10 +74,14 @@ def load_chewbite(filename, start=None, end=None, verbose=True, to_regularity=Fa
     return s_formatted
 
 
-labels_of_interest = ["RUMIA", "PASTOREO"]
-scored_sessions1 = utils.get_sessions_scores(ground_filenames, prediction_filenames1, load_chewbite, labels_of_interest)
-scored_sessions2 = utils.get_sessions_scores(ground_filenames, prediction_filenames2, load_chewbite, labels_of_interest)
+# report_csv = "example3_report.csv"
+activities_of_interest = ["ACTIVIDAD_A", "ACTIVIDAD_B"]
+names_of_predictors = ["test1", "test2"]
 
-plotter.spider_and_violinplot_df_summaries([scored_sessions1.groupby("activity"),
-                                            scored_sessions2.groupby("activity")],
-                                           ["test1", "test2"])
+labels_of_interest = ["RUMIA", "PASTOREO"]
+scored_sessions1 = utils.get_sessions_scores(ground_filenames, prediction_filenames1, load_chewbite, activities_of_interest)
+scored_sessions2 = utils.get_sessions_scores(ground_filenames, prediction_filenames2, load_chewbite, activities_of_interest)
+
+# plotter.spider_and_violinplot_df_summaries([scored_sessions1.groupby("activity"),
+#                                             scored_sessions2.groupby("activity")],
+#                                            ["test1", "test2"])

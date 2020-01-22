@@ -154,6 +154,7 @@ def get_sessions_scores(ground_filenames, prediction_filenames, loader_function,
 def complete_report(csv_report_filename, labels_of_interest, labels_of_predictors, loader_function,
                     ground_filenames, *argv_prediction_filenames, display=True, **kwargs):
     """
+    :param display:
     :param csv_report_filename: file to store results. If it is a an empty string it will save no file.
     :param labels_of_predictors: names of predictors to assign to predictions
     :param loader_function: function to load

@@ -10,8 +10,8 @@ prediction_filenames2 = ["./data/test21.txt",
                          "./data/test22.txt"]
 
 standardized_names = {"RUMIA PASTURA": "RUMIA", "PASTURA": "PASTOREO"}
-regularity_replacements = {"RUMIA": "REGULAR", "PASTOREO": "REGULAR"}
-_names_of_interest = ["PASTOREO", "RUMIA"]
+regularity_replacements = {"ACTIVIDAD_A": "REGULAR", "ACTIVIDAD_B": "REGULAR"}
+_names_of_interest = ["ACTIVIDAD_A", "ACTIVIDAD_B"]
 
 
 def load_chewbite(filename, start=None, end=None, verbose=True, to_regularity=False):
@@ -71,7 +71,7 @@ def load_chewbite(filename, start=None, end=None, verbose=True, to_regularity=Fa
 
 
 report_csv = "example3_report.csv"
-activities_of_interest = ["RUMIA", "PASTOREO"]
+activities_of_interest = ["ACTIVIDAD_A", "ACTIVIDAD_B"]
 names_of_predictors = ["test1", "test2"]
 
 utils.complete_report(report_csv, activities_of_interest, names_of_predictors, load_chewbite,

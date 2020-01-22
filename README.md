@@ -42,7 +42,7 @@ Single-user update (recommended)
 Usage
 -----
 
-There are two examples (that should be improved)
+There are three examples in the repo (that should be improved)
 
 Development
 -----------
