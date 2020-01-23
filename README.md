@@ -54,7 +54,7 @@ without needing to re-install):
 
 Update version at `setup.py` and then create a source distribution
 
-    python3 setup.py sdist
+    python3 setup.py sdist bdist_wheel
 
 Upload to PyPI
 
