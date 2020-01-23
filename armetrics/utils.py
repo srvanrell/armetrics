@@ -114,19 +114,27 @@ def get_scores(y_true_bin, y_pred_bin):
             "frames_summary": scorer.frames_summary(scored_frames)}
 
 
-def get_sessions_scores(ground_filenames, prediction_filenames, loader_function, activities_of_interest, **kwarg):
+def get_sessions_scores(ground_filenames, prediction_filenames, loader_function, activities_of_interest,
+                        starts_ends=None, **kwarg):
     """
     :param ground_filenames: list of filenames for the ground truth
     :param prediction_filenames: list of filenames for the predictor
     :param activities_of_interest: list of labels of interest (among the ones within given files)
-    :param loader_function: function to read files, it should return ?? FIXME
+    :param loader_function: function to read files, it should return a pandas Series
+    (see load_txt_labels() for an example of load)
+    :param starts_ends: (optional) list of tuples (start, end) in seconds for each ground file.
+    It should has same length as ground_filenames
     Additions arguments are given to loader_function
     """
+    if starts_ends is None:
+        starts_ends = [(None, None)] * len(ground_filenames)
 
     # Ground sessions labels
-    yground_by_session = [loader_function(filename, **kwarg) for filename in ground_filenames]
+    yground_by_session = [loader_function(filename, start=s, end=e, **kwarg)
+                          for filename, (s, e) in zip(ground_filenames, starts_ends)]
     # Prediction sessions labels
-    ypred_by_session = [loader_function(filename, **kwarg) for filename in prediction_filenames]
+    ypred_by_session = [loader_function(filename, start=s, end=e, **kwarg)
+                        for filename, (s, e) in zip(prediction_filenames, starts_ends)]
 
     dfs_to_concat = []
 
@@ -152,9 +160,8 @@ def get_sessions_scores(ground_filenames, prediction_filenames, loader_function,
 
 
 def complete_report(csv_report_filename, labels_of_interest, labels_of_predictors, loader_function,
-                    ground_filenames, *argv_prediction_filenames, display=True, **kwargs):
+                    ground_filenames, *argv_prediction_filenames, display=True, starts_ends=None, **kwargs):
     """
-    :param display:
     :param csv_report_filename: file to store results. If it is a an empty string it will save no file.
     :param labels_of_predictors: names of predictors to assign to predictions
     :param loader_function: function to load
@@ -162,12 +169,14 @@ def complete_report(csv_report_filename, labels_of_interest, labels_of_predictor
     :param ground_filenames: list of filenames for the ground truth
     :param argv_prediction_filenames: lists of filenames for each method of prediction
     (each list is given as a separated argument)
+    :param starts_ends: (optional) list of tuples (start, end) in seconds for each ground file.
+    It should has same length as ground_filenames
+    :param display: True (default) plot results
     :type kwargs: extra arguments for loader function
     """
-
     # Get scores for each pair of ground and prediction files, for each activities of interest
     scored_sessions = [get_sessions_scores(ground_filenames, prediction_filenames,
-                                           loader_function, labels_of_interest, **kwargs)
+                                           loader_function, labels_of_interest, starts_ends=starts_ends, **kwargs)
                        for prediction_filenames in argv_prediction_filenames]
 
     # Add name of predictors to scored sessions
@@ -194,3 +203,62 @@ def display_report(complete_report_df):
         plotter.plot_violinplot_from_report(single_activity_report)
         plotter.print_f1scores_from_report(single_activity_report)
         plotter.print_time_errors_from_report(single_activity_report)
+
+
+def load_txt_labels(filename, start=None, end=None, verbose=True, activities_of_interest=None):
+    """
+    Load activity labels given in filename and return a pandas Series compatible with the scorer.
+
+
+    :param filename: path to the filename
+    :param start: in seconds
+    :param end:
+    :param verbose:
+    :param activities_of_interest:
+    :return:
+    """
+    df = pd.read_table(filename, decimal=',', header=None)
+    df.dropna(axis=1, how='all', inplace=True)
+    df.columns = ["start", "end", "label"]
+
+    df[["start", "end"]] = df[["start", "end"]].astype('float')
+    df = df.round(0)
+    df[["start", "end"]] = df[["start", "end"]].astype('int')
+
+    df.label = df.label.str.strip().str.upper()
+
+    # It will modify the limits of partially selected labels
+    # Given end and start may be in the middle of a label
+    if start:
+        df = df[df.end > start]
+        df.loc[df.start < start, "start"] = start
+        df = df[df.start >= start]
+    if end:
+        df = df[df.start < end]
+        df.loc[df.end > end, "end"] = end
+        df = df[df.end <= end]
+    # names_of_interest = _names_of_interest
+    if verbose:
+        print("Labels in (", start, ",", end, ") from", filename, "\n", df.label.unique())
+
+    if activities_of_interest:
+        activities_of_interest = [act.strip().upper() for act in activities_of_interest]
+        df = df.loc[df.label.isin(activities_of_interest)]
+
+    segments = [Segment(start, end, label) for name, (start, end, label) in df.iterrows()]
+    indexes = [np.arange(start, end) for name, (start, end, label) in df.iterrows()]
+    if len(segments) < 1:
+        print("Warning, you are trying to load a span with no labels from:", filename)
+
+    frames = segments2frames(segments)
+    indexes = np.concatenate(indexes)
+    serie = pd.Series(frames, index=indexes)
+
+    if serie.index.has_duplicates:
+        print("Overlapping labels were found in", filename)
+        print("Check labels corresponding to times given below (in seconds):")
+        print(serie.index[serie.index.duplicated()])
+
+    s_formatted = serie.reindex(np.arange(serie.index[-1]), fill_value="")
+
+    return s_formatted
