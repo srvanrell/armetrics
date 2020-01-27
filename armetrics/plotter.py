@@ -163,11 +163,11 @@ def plot_violinplot_from_report(single_activity_report):
 
 def _format_time_errors(report_row):
     error_in_minutes = report_row.raw_time_error / 60.0
-    print("\t{}\t{:0.2f} min".format(report_row.ground_filename, error_in_minutes))
+    print("\t{}\t{:0.2f} min, \t{:0.3f}".format(report_row.ground_filename, error_in_minutes, report_row.frame_f1score))
 
 
 def print_time_errors_from_report(single_activity_report):
     grouped_reports = single_activity_report.groupby("predictor_name")
     for predictor_name, predictor_report in grouped_reports:
-        print("\n>>{} errors (in minutes)\n".format(predictor_name))
+        print("\n>>{} errors (in minutes), frame f1-score\n".format(predictor_name))
         predictor_report.apply(_format_time_errors, axis="columns")
