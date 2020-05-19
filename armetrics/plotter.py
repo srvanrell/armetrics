@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 
-def spider_plot(title, radial_labels, case_data, case_labels):
+def spider_plot(title, radial_labels, case_data, case_labels, first_color=0):
     """
     Minimum example of the inputs
     :param title: 'Titulo'
@@ -11,6 +11,7 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     :param case_data: [[0.1, 0.2, 0.5],
                        [0.3, 0.4, 0.6]]
     :param case_labels: ["Serie 1", "Serie 2"]
+    :param first_color: 0 (default)
     :return:
     """
     n_radial_labels = len(radial_labels)
@@ -39,7 +40,10 @@ def spider_plot(title, radial_labels, case_data, case_labels):
     #    axes.set_title(title, weight='bold', position=(0.5, 1.1),
     #                   horizontalalignment='center', verticalalignment='center')
 
-    colors = ["C%d" % i for i in range(len(case_labels))]
+    if len(case_labels) > 10:
+        print("Be careful! I cannot plot more than 10 labels.")
+    colors = ["C%d" % (i + first_color) for i in range(len(case_labels))]
+    # colors = colors[first_color:] + colors[:first_color]
     ax.set_rgrids([0.2, 0.4, 0.6, 0.8], [0.8, 0.6, 0.4, 0.2])
     ax.set_ylim([0, 1])
 
@@ -80,7 +84,7 @@ def print_f1scores_from_report(single_activity_report):
         print(predictor_name.ljust(25)[:25] + frame_str.ljust(25) + event_str)
 
 
-def plot_spider_from_report(single_activity_report):
+def plot_spider_from_report(single_activity_report, first_color):
     activity = single_activity_report.activity.iloc[0]
     case_data = []
     case_labels = []
@@ -113,10 +117,11 @@ def plot_spider_from_report(single_activity_report):
                     r"$\rm{I}_b$", r"$\rm{D}_b$", r"$\rm{M}_b$", r"$\rm{F}_b$", r"$\rm{FDR}_b$", r"$\rm{FNR}_b$"
                 ],
                 case_data=case_data,
-                case_labels=case_labels)
+                case_labels=case_labels,
+                first_color=first_color)
 
 
-def plot_violinplot_from_report(single_activity_report):
+def plot_violinplot_from_report(single_activity_report, first_color=0):
     grouped_reports = single_activity_report.groupby("predictor_name", sort=False)
     n_predictors = len(grouped_reports)
     predictors_labels = []
@@ -133,14 +138,19 @@ def plot_violinplot_from_report(single_activity_report):
 
     if n_predictors > 10:
         print("Be careful! I cannot plot more than 10 labels.")
-    # colors = ["C%d" % i for i in range(n_predictors)]
+    colors = ["C%d" % (i + first_color) for i in range(n_predictors)]
+    # colors = colors[first_color:] + colors[:first_color]
 
-    for (predictor_name, predictor_report), p in zip(grouped_reports, pos):
+    for (predictor_name, predictor_report), p, c in zip(grouped_reports, pos, colors):
         predictors_labels.append(predictor_name)
 
         error_in_minutes = predictor_report.raw_time_error.values / 60.0
-        plt.violinplot(error_in_minutes[np.isfinite(error_in_minutes)], [p], points=50, vert=False, widths=0.65,
-                       showmeans=False, showmedians=True, showextrema=True, bw_method='silverman')
+        parts = plt.violinplot(error_in_minutes[np.isfinite(error_in_minutes)], [p], points=50, vert=False, widths=0.65,
+                               showmeans=False, showmedians=True, showextrema=True, bw_method='silverman')
+        for pc in parts['bodies']:
+            pc.set_facecolor(c)
+        for part_name in ["cmaxes", "cmins", "cbars", "cmedians"]:
+            parts[part_name].set_color(c)
 
     plt.axvline(x=0, color="k", linestyle="dashed")
     plt.yticks(pos, predictors_labels)
