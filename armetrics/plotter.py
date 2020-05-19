@@ -72,7 +72,7 @@ def spider_plot(title, radial_labels, case_data, case_labels):
 def print_f1scores_from_report(single_activity_report):
     print("Predictor".ljust(25) + "Frame-based f1score".ljust(25) + "Block-based f1score")
 
-    for predictor_name, predictor_report in single_activity_report.groupby("predictor_name"):
+    for predictor_name, predictor_report in single_activity_report.groupby("predictor_name", sort=False):
         frame_str = "%0.3f (+-%0.3f)" % (predictor_report.frame_f1score.mean(),
                                          predictor_report.frame_f1score.std())
         event_str = "%0.3f (+-%0.3f)" % (predictor_report.event_f1score.mean(),
@@ -85,7 +85,7 @@ def plot_spider_from_report(single_activity_report):
     case_data = []
     case_labels = []
 
-    for predictor_name, predictor_report in single_activity_report.groupby("predictor_name"):
+    for predictor_name, predictor_report in single_activity_report.groupby("predictor_name", sort=False):
         predictor_mean = predictor_report.mean()
         # Saving data to plot
         case_data.append([predictor_mean.frame_recall, predictor_mean.frame_precision,
@@ -117,7 +117,7 @@ def plot_spider_from_report(single_activity_report):
 
 
 def plot_violinplot_from_report(single_activity_report):
-    grouped_reports = single_activity_report.groupby("predictor_name")
+    grouped_reports = single_activity_report.groupby("predictor_name", sort=False)
     n_predictors = len(grouped_reports)
     predictors_labels = []
     ground_mean_in_minutes = single_activity_report.ground_positives.mean() / 60.0
@@ -167,7 +167,7 @@ def _format_time_errors(report_row):
 
 
 def print_time_errors_from_report(single_activity_report):
-    grouped_reports = single_activity_report.groupby("predictor_name")
+    grouped_reports = single_activity_report.groupby("predictor_name", sort=False)
     for predictor_name, predictor_report in grouped_reports:
         print("\n>>{} errors (in minutes), frame f1-score\n".format(predictor_name))
         predictor_report.apply(_format_time_errors, axis="columns")
