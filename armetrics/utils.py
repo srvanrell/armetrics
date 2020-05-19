@@ -194,7 +194,7 @@ def complete_report(csv_report_filename, labels_of_interest, labels_of_predictor
 
 
 def display_report(complete_report_df):
-    report_activity_grouped = complete_report_df.groupby("activity")
+    report_activity_grouped = complete_report_df.groupby("activity", sort=False)
 
     for activity_label, single_activity_report in report_activity_grouped:
         print("\n================", activity_label, "================\n")
