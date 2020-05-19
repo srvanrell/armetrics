@@ -69,6 +69,7 @@ def spider_plot(title, radial_labels, case_data, case_labels, first_color=0):
 
     plt.tight_layout(pad=3.5)
     plt.savefig("spider_" + title + ".pdf")
+    plt.savefig("spider_" + title + ".svg")
     plt.savefig("spider_" + title + ".png")
     plt.show()
 
@@ -167,6 +168,7 @@ def plot_violinplot_from_report(single_activity_report, first_color=0):
 
     plt.tight_layout()
     plt.savefig('violin_' + activity + '.pdf')
+    plt.savefig('violin_' + activity + '.svg')
     plt.savefig('violin_' + activity + '.png')
     plt.show()
 
