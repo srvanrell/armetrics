@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 
-def spider_plot(title, radial_labels, case_data, case_labels, first_color=0):
+def spider_plot(title, radial_labels, case_data, case_labels, colors_list=None):
     """
     Minimum example of the inputs
     :param title: 'Titulo'
@@ -11,7 +11,7 @@ def spider_plot(title, radial_labels, case_data, case_labels, first_color=0):
     :param case_data: [[0.1, 0.2, 0.5],
                        [0.3, 0.4, 0.6]]
     :param case_labels: ["Serie 1", "Serie 2"]
-    :param first_color: 0 (default)
+    :param colors_list: None (default) Example: [0, 3, 5]
     :return:
     """
     n_radial_labels = len(radial_labels)
@@ -40,10 +40,8 @@ def spider_plot(title, radial_labels, case_data, case_labels, first_color=0):
     #    axes.set_title(title, weight='bold', position=(0.5, 1.1),
     #                   horizontalalignment='center', verticalalignment='center')
 
-    if len(case_labels) > 10:
-        print("Be careful! I cannot plot more than 10 labels.")
-    colors = ["C%d" % (i + first_color) for i in range(len(case_labels))]
-    # colors = colors[first_color:] + colors[:first_color]
+    num_labels = len(case_labels)
+    colors = _get_colors_str_list(num_labels, colors_list)
     ax.set_rgrids([0.2, 0.4, 0.6, 0.8], [0.8, 0.6, 0.4, 0.2])
     ax.set_ylim([0, 1])
 
@@ -85,7 +83,7 @@ def print_f1scores_from_report(single_activity_report):
         print(predictor_name.ljust(25)[:25] + frame_str.ljust(25) + event_str)
 
 
-def plot_spider_from_report(single_activity_report, first_color):
+def plot_spider_from_report(single_activity_report, colors_list):
     activity = single_activity_report.activity.iloc[0]
     case_data = []
     case_labels = []
@@ -119,10 +117,10 @@ def plot_spider_from_report(single_activity_report, first_color):
                 ],
                 case_data=case_data,
                 case_labels=case_labels,
-                first_color=first_color)
+                colors_list=colors_list)
 
 
-def plot_violinplot_from_report(single_activity_report, first_color=0):
+def plot_violinplot_from_report(single_activity_report, colors_list=None):
     grouped_reports = single_activity_report.groupby("predictor_name", sort=False)
     n_predictors = len(grouped_reports)
     predictors_labels = []
@@ -136,11 +134,7 @@ def plot_violinplot_from_report(single_activity_report, first_color=0):
 
     plt.figure()
     pos = np.arange(n_predictors) + .5  # the bar centers on the y axis
-
-    if n_predictors > 10:
-        print("Be careful! I cannot plot more than 10 labels.")
-    colors = ["C%d" % (i + first_color) for i in range(n_predictors)]
-    # colors = colors[first_color:] + colors[:first_color]
+    colors = _get_colors_str_list(n_predictors, colors_list)
 
     for (predictor_name, predictor_report), p, c in zip(grouped_reports, pos, colors):
         predictors_labels.append(predictor_name)
@@ -171,6 +165,20 @@ def plot_violinplot_from_report(single_activity_report, first_color=0):
     plt.savefig('violin_' + activity + '.svg')
     plt.savefig('violin_' + activity + '.png')
     plt.show()
+
+
+def _get_colors_str_list(num_labels, colors_list=None):
+    if not colors_list:
+        colors_list = list(range(num_labels))
+    num_colors = len(colors_list)
+    colors = [f"C{i:d}" for i in colors_list]
+
+    if num_labels > 10:
+        raise AttributeError("Be careful! I cannot plot more than 10 labels.")
+    if num_labels != num_colors:
+        raise AttributeError(f"The number of colors ({num_colors}) does not match the number of labels ({num_labels})")
+
+    return colors
 
 
 def _format_time_errors(report_row):

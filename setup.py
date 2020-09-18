@@ -7,7 +7,7 @@ def readme():
 
 
 setup(name='armetrics',
-      version='0.1.13',
+      version='0.1.14',
       description='Continuous Activity Recognition Metrics based on (Ward et al, 2011)',
       long_description=readme(),
       long_description_content_type="text/markdown",

@@ -160,7 +160,7 @@ def get_sessions_scores(ground_filenames, prediction_filenames, loader_function,
 
 
 def complete_report(csv_report_filename, labels_of_interest, labels_of_predictors, loader_function,
-                    ground_filenames, *argv_prediction_filenames, display=True, first_color=0, **kwargs):
+                    ground_filenames, *argv_prediction_filenames, display=True, colors_list=None, **kwargs):
     """
     :param csv_report_filename: file to store results. If it is a an empty string it will save no file.
     :param labels_of_predictors: names of predictors to assign to predictions
@@ -169,7 +169,7 @@ def complete_report(csv_report_filename, labels_of_interest, labels_of_predictor
     :param ground_filenames: list of filenames for the ground truth
     :param argv_prediction_filenames: lists of filenames for each method of prediction
     (each list is given as a separated argument)
-    :param first_color: 0 (default) will be used to select the first color on plots
+    :param colors_list: None (default) will be used to select the colors on plots from [C0 ... C9]
     :param starts_ends: (optional) list of tuples (start, end) in seconds for each ground file.
     It should has same length as ground_filenames
     :param display: True (default) plot results
@@ -189,19 +189,19 @@ def complete_report(csv_report_filename, labels_of_interest, labels_of_predictor
         complete_report_df.to_csv(csv_report_filename, index=False)
 
     if display:
-        display_report(complete_report_df, first_color)
+        display_report(complete_report_df, colors_list)
 
     return complete_report_df
 
 
-def display_report(complete_report_df, first_color):
+def display_report(complete_report_df, colors_list):
     report_activity_grouped = complete_report_df.groupby("activity", sort=False)
 
     for activity_label, single_activity_report in report_activity_grouped:
         print("\n================", activity_label, "================\n")
 
-        plotter.plot_spider_from_report(single_activity_report, first_color)
-        plotter.plot_violinplot_from_report(single_activity_report, first_color)
+        plotter.plot_spider_from_report(single_activity_report, colors_list)
+        plotter.plot_violinplot_from_report(single_activity_report, colors_list)
         plotter.print_f1scores_from_report(single_activity_report)
         plotter.print_time_errors_from_report(single_activity_report)
 
